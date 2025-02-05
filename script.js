@@ -52,8 +52,8 @@ function showTaunt() {
         speechText.textContent = taunts[newIndex];
         speechBubble.classList.remove('hidden');
         
-        // 1.5秒後自動更換新的挑釁語句
-        idleTimer = setTimeout(showTaunt, 1500);
+        // 2秒後自動更換新的挑釁語句
+        idleTimer = setTimeout(showTaunt, 2000);
     }
 }
 
