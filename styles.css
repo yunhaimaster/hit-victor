@@ -1,0 +1,164 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+h1 {
+    color: #ff4444;
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.instructions {
+    background-color: #fff9e6;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-size: 1.1em;
+}
+
+.game-container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.score-board {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.character-container {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    position: relative;
+}
+
+#victor {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#victor.hit {
+    animation: shake 0.5s;
+}
+
+#glasses.hit {
+    animation: tiltGlasses 0.5s;
+}
+
+#hair.hit {
+    animation: messHair 0.5s;
+}
+
+#mouth.hit {
+    animation: mouthMove 0.3s;
+}
+
+#victor.angry {
+    animation: angryShake 0.3s infinite;
+}
+
+#victor.angry .eye {
+    transform: scaleY(0.3);
+    fill: #ff0000;
+}
+
+#victor.angry #eyebrows {
+    opacity: 1;
+    animation: angryBrows 0.3s infinite;
+    stroke: #ff0000;
+}
+
+#victor.angry #mouth {
+    transform: scale(1, -1) translateY(-30px);
+    stroke: #ff0000;
+    stroke-width: 4;
+}
+
+#victor.angry #hair path {
+    animation: spikyHair 0.3s infinite;
+}
+
+.character-container.angry {
+    animation: backgroundFlash 0.3s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translate(0, 0) rotate(0); }
+    25% { transform: translate(-10px, 0) rotate(-5deg); }
+    50% { transform: translate(10px, 0) rotate(5deg); }
+    75% { transform: translate(-10px, 0) rotate(-5deg); }
+}
+
+@keyframes tiltGlasses {
+    0%, 100% { transform: rotate(0); }
+    50% { transform: rotate(15deg) translate(5px, -5px); }
+}
+
+@keyframes messHair {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.2) scaleX(0.9); }
+}
+
+@keyframes mouthMove {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(-1); }
+}
+
+@keyframes angryBrows {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(-10deg); }
+}
+
+@keyframes spikyHair {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.2); }
+}
+
+@keyframes angryShake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-5px, 2px); }
+    75% { transform: translate(5px, -2px); }
+}
+
+@keyframes backgroundFlash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(255, 0, 0, 0.2); }
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+#resetBtn {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#resetBtn:hover {
+    background-color: #45a049;
+}

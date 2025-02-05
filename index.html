@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打 Victor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>打 Victor!</h1>
+        <div class="instructions">
+            點擊不同部位攻擊 Victor:<br>
+            - 打眼鏡 👓<br>
+            - 扯頭髮 ✂️<br>
+            - 戳臉蛋 👆<br>
+            (打到 10 下會變臉!)
+        </div>
+        <div class="score-board">
+            分數: <span id="score">0</span>
+        </div>
+        
+        <div class="character-container">
+            <svg id="victor" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- 頭部 -->
+                <circle cx="100" cy="100" r="50" fill="#FFE0BD"/>
+                
+                <!-- 頭髮 (豎起的短髮) -->
+                <g id="hair">
+                    <path d="M70 80 L80 50 L90 80" stroke="#000" stroke-width="8" fill="none"/>
+                    <path d="M85 80 L95 45 L105 80" stroke="#000" stroke-width="8" fill="none"/>
+                    <path d="M100 80 L110 50 L120 80" stroke="#000" stroke-width="8" fill="none"/>
+                </g>
+                
+                <!-- 眼鏡 (方形) -->
+                <g id="glasses">
+                    <rect x="65" y="75" width="30" height="30" fill="none" stroke="#000" stroke-width="3"/>
+                    <rect x="105" y="75" width="30" height="30" fill="none" stroke="#000" stroke-width="3"/>
+                    <line x1="95" y1="90" x2="105" y2="90" stroke="#000" stroke-width="3"/>
+                    <line x1="65" y1="90" x2="55" y2="85" stroke="#000" stroke-width="3"/>
+                    <line x1="135" y1="90" x2="145" y2="85" stroke="#000" stroke-width="3"/>
+                </g>
+                
+                <!-- 眼睛 -->
+                <circle cx="80" cy="90" r="5" fill="#000" class="eye"/>
+                <circle cx="120" cy="90" r="5" fill="#000" class="eye"/>
+                
+                <!-- 嘴巴 (可變表情) -->
+                <path id="mouth" d="M85 120 Q100 130 115 120" stroke="#000" stroke-width="3" fill="none"/>
+                
+                <!-- 表情變化用的眉毛 -->
+                <g id="eyebrows" opacity="0">
+                    <path d="M65 70 L95 75" stroke="#000" stroke-width="3"/>
+                    <path d="M105 75 L135 70" stroke="#000" stroke-width="3"/>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="controls">
+            <button id="resetBtn">重新開始</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
