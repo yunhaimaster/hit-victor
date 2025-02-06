@@ -9,10 +9,12 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    height: 100vh;
     background: linear-gradient(135deg, #6e8efb, #ff6b95);
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    padding: 20px;
+    padding: 10px;
     color: #2c3e50;
+    overflow: hidden;
 }
 
 h1 {
@@ -72,12 +74,131 @@ h1 {
 .game-container {
     text-align: center;
     background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
+    padding: 15px;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     backdrop-filter: blur(10px);
     max-width: 800px;
     width: 100%;
+    max-height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-height: 800px) {
+    body {
+        padding: 5px;
+    }
+
+    .game-container {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    h1 {
+        font-size: 1.6em;
+        margin-bottom: 5px;
+    }
+
+    .instructions {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    .instruction-content {
+        gap: 5px;
+    }
+
+    .instruction-title {
+        font-size: 1em;
+        gap: 5px;
+    }
+
+    .instruction-details {
+        gap: 5px;
+    }
+
+    .detail-item {
+        font-size: 0.85em;
+        gap: 5px;
+    }
+
+    .score-container {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    .score-label {
+        font-size: 0.9em;
+        margin-bottom: 3px;
+    }
+
+    .score-board {
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
+
+    .score-progress {
+        margin-top: 5px;
+    }
+
+    .progress-text {
+        font-size: 0.8em;
+    }
+
+    .character-container {
+        width: 160px;
+        height: 160px;
+        margin: 8px auto;
+        padding: 5px;
+    }
+
+    .speech-bubble {
+        font-size: 12px;
+        padding: 8px 15px;
+        top: -50px;
+        min-width: 140px;
+    }
+
+    .speech-bubble::before {
+        width: 16px;
+        height: 16px;
+        bottom: -8px;
+    }
+
+    .controls {
+        margin-top: 8px;
+    }
+
+    #resetBtn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .game-container {
+        padding: 8px;
+    }
+
+    .character-container {
+        width: 140px;
+        height: 140px;
+    }
+
+    .speech-bubble {
+        font-size: 11px;
+        padding: 6px 12px;
+        top: -45px;
+        min-width: 120px;
+        white-space: normal;
+        max-width: 160px;
+    }
+
+    .speech-bubble p {
+        word-break: break-word;
+    }
 }
 
 .score-container {
