@@ -295,7 +295,10 @@ async function handleFirstInteraction(event) {
 }
 
 container.addEventListener('mousedown', handleFirstInteraction);
-container.addEventListener('touchstart', handleFirstInteraction, { passive: false });
+container.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleFirstInteraction(e);
+}, { passive: false });
 
 // 添加觸摸反饋
 container.addEventListener('mouseenter', () => {
@@ -306,10 +309,7 @@ container.addEventListener('mouseleave', () => {
     container.classList.remove('hover');
 });
 
-container.addEventListener('touchstart', () => {
-    container.classList.add('hover');
-}, { passive: true });
-
+// 移除重複的觸摸事件監聽
 container.addEventListener('touchend', () => {
     container.classList.remove('hover');
 }, { passive: true });
