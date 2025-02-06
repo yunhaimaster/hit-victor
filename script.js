@@ -45,6 +45,9 @@ const audioPool = {
     pain: []
 };
 
+// 音效初始化狀態
+let isAudioInitialized = false;
+
 // 預加載音效
 function loadSounds() {
     try {
@@ -75,10 +78,6 @@ function loadSounds() {
                 console.log('Pain sound loaded successfully');
             }, { once: true });
         }
-
-        // 在用戶互動時初始化
-        document.addEventListener('touchstart', initSounds, { once: true });
-        document.addEventListener('click', initSounds, { once: true });
     } catch (e) {
         console.log('Audio not supported:', e);
     }
@@ -86,6 +85,8 @@ function loadSounds() {
 
 // 初始化音效
 async function initSounds() {
+    if (isAudioInitialized) return;
+    
     try {
         // 靜音播放所有音效以解鎖
         const promises = [...audioPool.ouch, ...audioPool.pain].map(audio => {
@@ -98,6 +99,8 @@ async function initSounds() {
         // 恢復音量
         audioPool.ouch.forEach(audio => audio.volume = 1.0);
         audioPool.pain.forEach(audio => audio.volume = 1.0);
+        
+        isAudioInitialized = true;
     } catch (e) {
         console.log('Sound initialization error:', e);
     }
@@ -110,6 +113,8 @@ function getAvailableAudio(type) {
 
 // 播放隨機音效
 function playRandomSound(isAngry = false) {
+    if (!isAudioInitialized) return;
+    
     const type = Math.random() < 0.5 ? 'ouch' : 'pain';
     const audio = getAvailableAudio(type);
     
@@ -166,9 +171,6 @@ function resetIdleTimer() {
 // 點擊事件處理
 async function handleHit(event) {
     event.preventDefault();
-    
-    // 確保音效已初始化
-    await initSounds().catch(console.error);
     
     // 獲取點擊或觸摸位置
     let x, y;
@@ -283,12 +285,17 @@ function resetGame() {
 
 // 事件監聽
 const container = document.querySelector('.character-container');
-container.addEventListener('mousedown', handleHit);
-container.addEventListener('touchstart', handleHit, { passive: false });
 
-// 確保音效在第一次互動時初始化
-container.addEventListener('mousedown', initSounds, { once: true });
-container.addEventListener('touchstart', initSounds, { once: true });
+// 處理第一次互動
+async function handleFirstInteraction(event) {
+    if (!isAudioInitialized) {
+        await initSounds();
+    }
+    handleHit(event);
+}
+
+container.addEventListener('mousedown', handleFirstInteraction);
+container.addEventListener('touchstart', handleFirstInteraction, { passive: false });
 
 // 添加觸摸反饋
 container.addEventListener('mouseenter', () => {
