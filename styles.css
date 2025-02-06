@@ -9,158 +9,320 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #6e8efb, #ff6b95);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     padding: 20px;
+    color: #2c3e50;
 }
 
 h1 {
-    color: #ff4444;
-    margin-bottom: 15px;
-    font-size: 2em;
+    color: white;
+    margin-bottom: 20px;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
 .instructions {
-    background-color: #fff9e6;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    line-height: 1.6;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.instruction-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.instruction-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instruction-title .icon {
+    font-size: 1.4em;
+}
+
+.instruction-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-size: 1.1em;
+    color: #34495e;
+}
+
+.detail-item .icon {
+    font-size: 1.2em;
 }
 
 .game-container {
     text-align: center;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    max-width: 800px;
+    width: 100%;
+}
+
+.score-container {
+    background: rgba(255, 255, 255, 0.9);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+}
+
+.score-label {
+    font-size: 1.2em;
+    color: #34495e;
+    margin-bottom: 10px;
 }
 
 .score-board {
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 48px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.score-progress {
+    margin-top: 15px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.9em;
+    color: #666;
 }
 
 .character-container {
-    width: 300px;
-    height: 300px;
-    margin: 20px auto;
+    width: 280px;
+    height: 280px;
+    margin: 40px auto;
     position: relative;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    padding: 10px;
+    transition: all 0.3s ease;
+    overflow: visible;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.character-container:hover,
+.character-container.hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.character-container:active,
+.character-container.active {
+    transform: scale(0.98);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.character-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.character-container:active::after {
+    opacity: 1;
+}
+
+.ripple {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+}
+
+@keyframes rippleEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(40);
+        opacity: 0;
+    }
+}
+
+.character {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.character::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, transparent 60%, rgba(255,255,255,0.1) 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.character:hover::before {
+    opacity: 1;
+}
+
+.expression {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform-origin: center;
+}
+
+.character svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .speech-bubble {
     position: absolute;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
-    padding: 12px 20px;
-    border: 3px solid #000;
-    top: 30px;
-    right: -30px;
-    max-width: 200px;
+    padding: 15px 25px;
+    top: -90px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    max-width: 250px;
+    min-width: 200px;
     opacity: 1;
-    transition: opacity 0.3s;
+    transition: all 0.3s ease;
     animation: bobbing 2s infinite;
     font-size: 16px;
-    font-weight: bold;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-    z-index: 100;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    z-index: 2;
+    color: #2c3e50;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
 }
 
 .speech-bubble::before {
     content: '';
     position: absolute;
-    left: 30px;
-    bottom: -20px;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 20px solid #000;
-    z-index: 1;
-}
-
-.speech-bubble::after {
-    content: '';
-    position: absolute;
-    left: 33px;
-    bottom: -15px;
-    width: 0;
-    height: 0;
-    border-left: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-top: 16px solid white;
-    z-index: 2;
+    left: 50%;
+    bottom: -12px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 4px;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+    z-index: -1;
 }
 
 .speech-bubble.hidden {
     opacity: 0;
+    transform: translate(-50%, -20px);
 }
 
 @keyframes bobbing {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -8px); }
 }
 
-#victor {
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    transition: transform 0.1s;
+.expression.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.expression.normal {
+    z-index: 1;
+}
+
+.expression.surprised {
+    z-index: 2;
+}
+
+.expression.hurt {
+    z-index: 3;
+}
+
+.expression.sad {
+    z-index: 4;
+}
+
+.expression.angry {
+    z-index: 5;
 }
 
 #victor.hit {
     animation: shake 0.5s;
 }
 
-#glasses.hit {
-    animation: tiltGlasses 0.5s;
-}
-
-#hair.hit {
-    animation: messHair 0.5s;
-}
-
-#mouth.hit {
-    animation: mouthMove 0.3s;
-}
-
 #victor.angry {
     animation: angryShake 0.3s infinite;
-}
-
-#victor.angry .eye {
-    transform: scaleY(0.3);
-    fill: #ff0000;
-}
-
-#victor.angry #eyebrows {
-    animation: angryBrows 0.3s infinite;
-    stroke: #ff0000;
-    stroke-width: 3;
-}
-
-#victor.angry #mouth {
-    transform: scale(1, -1) translateY(-30px);
-    stroke: #ff0000;
-    stroke-width: 3;
-}
-
-#victor.angry #hair {
-    animation: angryHair 0.3s infinite;
-}
-
-#victor.angry #hair path {
-    stroke: #8b0000;
-    fill: #8b0000;
-}
-
-#victor.angry #glasses {
-    animation: shakeGlasses 0.3s infinite;
-}
-
-#victor.hit #hair path {
-    animation: messHair 0.5s;
 }
 
 .character-container.angry {
@@ -169,52 +331,15 @@ h1 {
 
 @keyframes shake {
     0%, 100% { transform: translate(0, 0) rotate(0); }
-    25% { transform: translate(-10px, 0) rotate(-5deg); }
-    50% { transform: translate(10px, 0) rotate(5deg); }
-    75% { transform: translate(-10px, 0) rotate(-5deg); }
-}
-
-@keyframes tiltGlasses {
-    0%, 100% { transform: rotate(0); }
-    50% { transform: rotate(15deg) translate(5px, -5px); }
-}
-
-@keyframes messHair {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(1.2) scaleX(0.9); }
-}
-
-@keyframes mouthMove {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(-1); }
-}
-
-@keyframes angryBrows {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-3px) rotate(-10deg); }
-}
-
-@keyframes angryHair {
-    0%, 100% { transform: translateY(0) scaleY(1); }
-    50% { transform: translateY(-5px) scaleY(1.2); }
-}
-
-@keyframes shakeGlasses {
-    0%, 100% { transform: rotate(0) translateX(0); }
-    25% { transform: rotate(-3deg) translateX(-2px); }
-    75% { transform: rotate(3deg) translateX(2px); }
-}
-
-@keyframes messHair {
-    0%, 100% { transform: translateY(0) rotate(0); }
-    25% { transform: translateY(-3px) rotate(-5deg); }
-    75% { transform: translateY(-3px) rotate(5deg); }
+    25% { transform: translate(-5px, 0) rotate(-2deg); }
+    50% { transform: translate(5px, 0) rotate(2deg); }
+    75% { transform: translate(-5px, 0) rotate(-2deg); }
 }
 
 @keyframes angryShake {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(-3px, 1px); }
-    75% { transform: translate(3px, -1px); }
+    0%, 100% { transform: translate(0, 0) scale(1.05); }
+    25% { transform: translate(-3px, 1px) scale(1.05); }
+    75% { transform: translate(3px, -1px) scale(1.05); }
 }
 
 @keyframes backgroundFlash {
@@ -223,20 +348,30 @@ h1 {
 }
 
 .controls {
-    margin-top: 20px;
+    margin-top: 30px;
+    position: relative;
 }
 
 #resetBtn {
-    padding: 10px 20px;
+    padding: 15px 30px;
     font-size: 18px;
-    background-color: #4CAF50;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 #resetBtn:hover {
-    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+}
+
+#resetBtn:active {
+    transform: translateY(1px);
 }

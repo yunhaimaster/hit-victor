@@ -10,70 +10,270 @@
     <div class="game-container">
         <h1>打 Victor!</h1>
         <div class="instructions">
-            點擊不同部位攻擊 Victor:<br>
-            - 打眼鏡 👓<br>
-            - 扯頭髮 ✂️<br>
-            - 戳臉蛋 👆<br>
-            (打到 10 下會變臉!)
+            <div class="instruction-content">
+                <div class="instruction-title">
+                    <span class="icon">👊</span> 點擊攻擊 Victor!
+                </div>
+                <div class="instruction-details">
+                    <div class="detail-item">
+                        <span class="icon">😠</span> 每下都有不同表情
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">🔥</span> 打到10下有特別反應
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">🎯</span> 看看能撐多少下!
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="score-board">
-            分數: <span id="score">0</span>
+        <div class="score-container">
+            <div class="score-label">分數</div>
+            <div class="score-board">
+                <span id="score">0</span>
+            </div>
+            <div class="score-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text">距離暴走還有 <span class="hits-left">10</span> 下</div>
+            </div>
         </div>
         
         <div class="character-container">
-            <svg id="victor" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <!-- 頭部 (更準確的形狀) -->
-                <path d="M60 105 C60 65 85 45 100 45 C115 45 140 65 140 105 C140 140 120 155 100 155 C80 155 60 140 60 105" fill="#ffe0bd"/>
+            <div id="victor" class="character">
+                <!-- 基本表情 -->
+                <svg class="expression normal" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 頭部 -->
+                    <ellipse cx="100" cy="105" rx="46" ry="55" fill="#ffe0bd"/>
+                    
+                    <!-- 頭髮 (時尚造型) -->
+                    <g id="hair">
+                        <!-- 基本髮型 -->
+                        <path d="M60 75 C70 25 130 25 140 75" fill="#8B4513"/>
+                        <!-- 上揚髮型 -->
+                        <path d="M75 75 C85 15 115 15 125 75" fill="#8B4513"/>
+                        <path d="M80 75 C95 10 105 10 120 75" fill="#8B4513"/>
+                        <!-- 髮絲層次 -->
+                        <path d="M85 75 C95 20 105 20 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <path d="M90 75 C100 15 110 15 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <!-- 側邊造型 -->
+                        <path d="M65 75 C70 45 75 40 85 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <path d="M115 75 C125 40 130 45 135 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <!-- 前髮細節 -->
+                        <path d="M95 75 C100 25 105 25 110 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                    </g>
+                    
+                    <!-- 眼鏡 -->
+                    <g id="glasses">
+                        <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
+                        <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
+                        <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
+                    </g>
+                    
+                    <!-- 眼睛 -->
+                    <g id="eyes">
+                        <circle cx="80" cy="94" r="3" fill="#000"/>
+                        <circle cx="120" cy="94" r="3" fill="#000"/>
+                    </g>
+                    
+                    <!-- 眉毛 -->
+                    <g id="eyebrows">
+                        <path d="M70 75 Q80 73 90 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                        <path d="M110 75 Q120 73 130 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 嘴巴 -->
+                    <path id="mouth" d="M90 125 Q100 128 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
+                </svg>
                 
-                <!-- 頭髮 (更蓬鬆的造型) -->
-                <g id="hair">
-                    <!-- 基本髮型 -->
-                    <path d="M55 75 C65 20 135 20 145 75" fill="#8B4513"/>
-                    <!-- 上揚前髮 -->
-                    <path d="M70 75 C85 15 115 15 130 75" fill="#8B4513"/>
-                    <path d="M80 75 C95 10 105 10 120 75" fill="#8B4513"/>
-                    <!-- 髮絲細節 -->
-                    <path d="M85 75 C95 25 105 25 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
-                    <path d="M90 75 C100 20 110 20 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
-                    <!-- 側邊造型 -->
-                    <path d="M60 75 C65 50 70 45 75 75" stroke="#A0522D" stroke-width="2" fill="none"/>
-                    <path d="M125 75 C130 45 135 50 140 75" stroke="#A0522D" stroke-width="2" fill="none"/>
-                    <!-- 額外髮絲 -->
-                    <path d="M75 75 Q90 30 105 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
-                    <path d="M95 75 Q110 30 125 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
-                    <!-- 前髮重點 -->
-                    <path d="M90 75 C95 15 105 15 110 75" stroke="#A0522D" stroke-width="2.5" fill="none"/>
-                    <path d="M85 75 C90 20 100 20 105 75" stroke="#A0522D" stroke-width="2" fill="none"/>
-                </g>
+                <!-- 驚訝表情 -->
+                <svg class="expression surprised hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 頭部 -->
+                    <ellipse cx="100" cy="105" rx="46" ry="55" fill="#ffe0bd"/>
+                    
+                    <!-- 頭髮 (時尚造型) -->
+                    <g id="hair">
+                        <!-- 基本髮型 -->
+                        <path d="M60 75 C70 25 130 25 140 75" fill="#8B4513"/>
+                        <!-- 上揚髮型 -->
+                        <path d="M75 75 C85 15 115 15 125 75" fill="#8B4513"/>
+                        <path d="M80 75 C95 10 105 10 120 75" fill="#8B4513"/>
+                        <!-- 髮絲層次 -->
+                        <path d="M85 75 C95 20 105 20 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <path d="M90 75 C100 15 110 15 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <!-- 側邊造型 -->
+                        <path d="M65 75 C70 45 75 40 85 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <path d="M115 75 C125 40 130 45 135 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <!-- 前髮細節 -->
+                        <path d="M95 75 C100 25 105 25 110 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                    </g>
+                    
+                    <!-- 眼鏡 -->
+                    <g id="glasses">
+                        <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
+                        <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
+                        <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
+                    </g>
+                    
+                    <!-- 驚訝的眼睛 (更大) -->
+                    <g id="eyes">
+                        <circle cx="80" cy="94" r="4" fill="#000"/>
+                        <circle cx="120" cy="94" r="4" fill="#000"/>
+                    </g>
+                    
+                    <!-- 驚訝的眉毛 (上揚) -->
+                    <g id="eyebrows">
+                        <path d="M70 70 Q80 65 90 70" stroke="#8B4513" stroke-width="2" fill="none"/>
+                        <path d="M110 70 Q120 65 130 70" stroke="#8B4513" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 驚訝的嘴巴 (微張) -->
+                    <path id="mouth" d="M90 125 Q100 132 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
+                </svg>
                 
-                <!-- 眼鏡 (更粗框) -->
-                <g id="glasses">
-                    <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
-                    <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
-                    <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
-                    <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
-                    <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
-                </g>
+                <!-- 痛苦表情 -->
+                <svg class="expression hurt hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 頭部 -->
+                    <ellipse cx="100" cy="105" rx="46" ry="55" fill="#ffe0bd"/>
+                    
+                    <!-- 頭髮 (時尚造型) -->
+                    <g id="hair">
+                        <!-- 基本髮型 -->
+                        <path d="M60 75 C70 25 130 25 140 75" fill="#8B4513"/>
+                        <!-- 上揚髮型 -->
+                        <path d="M75 75 C85 15 115 15 125 75" fill="#8B4513"/>
+                        <path d="M80 75 C95 10 105 10 120 75" fill="#8B4513"/>
+                        <!-- 髮絲層次 -->
+                        <path d="M85 75 C95 20 105 20 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <path d="M90 75 C100 15 110 15 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <!-- 側邊造型 -->
+                        <path d="M65 75 C70 45 75 40 85 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <path d="M115 75 C125 40 130 45 135 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                        <!-- 前髮細節 -->
+                        <path d="M95 75 C100 25 105 25 110 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                    </g>
+                    
+                    <!-- 眼鏡 -->
+                    <g id="glasses">
+                        <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
+                        <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
+                        <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
+                    </g>
+                    
+                    <!-- 痛苦的眼睛 (瞇起) -->
+                    <g id="eyes">
+                        <path d="M75 94 Q80 92 85 94" stroke="#000" stroke-width="2" fill="none"/>
+                        <path d="M115 94 Q120 92 125 94" stroke="#000" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 痛苦的眉毛 (皺眉) -->
+                    <g id="eyebrows">
+                        <path d="M70 75 Q80 80 90 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                        <path d="M110 75 Q120 80 130 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 痛苦的嘴巴 -->
+                    <path id="mouth" d="M90 125 Q100 120 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
+                </svg>
                 
-                <!-- 眼睛 (更自然) -->
-                <g id="eyes">
-                    <path d="M75 94 Q80 91 85 94" stroke="#000" stroke-width="1.5" fill="none"/>
-                    <path d="M115 94 Q120 91 125 94" stroke="#000" stroke-width="1.5" fill="none"/>
-                    <circle cx="80" cy="94" r="3" fill="#000"/>
-                    <circle cx="120" cy="94" r="3" fill="#000"/>
-                </g>
+                <!-- 委屈表情 -->
+                <svg class="expression sad hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 頭部 -->
+                    <ellipse cx="100" cy="105" rx="46" ry="55" fill="#ffe0bd"/>
+                    
+                    <!-- 頭髮 -->
+                    <g id="hair">
+                        <path d="M60 75 C70 30 130 30 140 75" fill="#8B4513"/>
+                        <path d="M75 75 C85 25 115 25 125 75" fill="#8B4513"/>
+                        <path d="M80 75 C95 20 105 20 120 75" fill="#8B4513"/>
+                        <path d="M85 75 C95 35 105 35 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <path d="M90 75 C100 30 110 30 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 眼鏡 -->
+                    <g id="glasses">
+                        <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                        <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
+                        <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
+                        <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
+                    </g>
+                    
+                    <!-- 委屈的眼睛 (含淚) -->
+                    <g id="eyes">
+                        <circle cx="80" cy="94" r="3" fill="#000"/>
+                        <circle cx="120" cy="94" r="3" fill="#000"/>
+                        <!-- 淚珠 -->
+                        <circle cx="85" cy="98" r="1" fill="#4FB4F2"/>
+                        <circle cx="125" cy="98" r="1" fill="#4FB4F2"/>
+                    </g>
+                    
+                    <!-- 委屈的眉毛 -->
+                    <g id="eyebrows">
+                        <path d="M70 75 Q80 78 90 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                        <path d="M110 75 Q120 78 130 75" stroke="#8B4513" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 委屈的嘴巴 -->
+                    <path id="mouth" d="M90 125 Q100 122 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
+                </svg>
                 
-                <!-- 眉毛 (更自然) -->
-                <g id="eyebrows">
-                    <path d="M70 75 Q80 73 90 75" stroke="#4a3000" stroke-width="2" fill="none"/>
-                    <path d="M110 75 Q120 73 130 75" stroke="#4a3000" stroke-width="2" fill="none"/>
-                </g>
-                
-                <!-- 嘴巴 (溫和微笑) -->
-                <path id="mouth" d="M90 125 Q100 128 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
-            </svg>
-            <div id="speech-bubble" class="speech-bubble hidden">
-                <p></p>
+                <!-- 憤怒表情 -->
+                <svg class="expression angry hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 頭部 -->
+                    <ellipse cx="100" cy="105" rx="46" ry="55" fill="#ffb0b0"/>
+                    
+                    <!-- 頭髮 (憤怒豎起) -->
+                    <g id="hair">
+                        <!-- 基本髮型 -->
+                        <path d="M60 75 C70 15 130 15 140 75" fill="#8B4513"/>
+                        <!-- 上揚髮型 -->
+                        <path d="M75 75 C85 10 115 10 125 75" fill="#8B4513"/>
+                        <path d="M80 75 C95 5 105 5 120 75" fill="#8B4513"/>
+                        <!-- 髮絲層次 -->
+                        <path d="M85 75 C95 15 105 15 115 75" stroke="#A0522D" stroke-width="3" fill="none"/>
+                        <path d="M90 75 C100 10 110 10 120 75" stroke="#A0522D" stroke-width="3" fill="none"/>
+                        <!-- 側邊豎起 -->
+                        <path d="M65 75 C70 35 75 30 85 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <path d="M115 75 C125 30 130 35 135 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                        <!-- 前髮豎起 -->
+                        <path d="M95 75 C100 15 105 15 110 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    </g>
+                    
+                    <!-- 眼鏡 -->
+                    <g id="glasses">
+                        <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="3" rx="2"/>
+                        <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="3" rx="2"/>
+                        <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="3"/>
+                        <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="3"/>
+                        <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="3"/>
+                    </g>
+                    
+                    <!-- 憤怒的眼睛 (發紅) -->
+                    <g id="eyes">
+                        <circle cx="80" cy="94" r="3" fill="#FF0000"/>
+                        <circle cx="120" cy="94" r="3" fill="#FF0000"/>
+                    </g>
+                    
+                    <!-- 憤怒的眉毛 -->
+                    <g id="eyebrows">
+                        <path d="M70 75 Q80 65 90 75" stroke="#8B4513" stroke-width="3" fill="none"/>
+                        <path d="M110 75 Q120 65 130 75" stroke="#8B4513" stroke-width="3" fill="none"/>
+                    </g>
+                    
+                    <!-- 憤怒的嘴巴 -->
+                    <path id="mouth" d="M85 125 Q100 115 115 125" stroke="#000" stroke-width="2" fill="none"/>
+                </svg>
+            </div>
+            <div id="speech-bubble" class="speech-bubble">
+                <p>打我呀,哈哈!</p>
             </div>
         </div>
         
