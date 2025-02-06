@@ -23,36 +23,38 @@
         <div class="character-container">
             <svg id="victor" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <!-- 頭部 -->
-                <circle cx="100" cy="100" r="50" fill="#FFE0BD"/>
+                <ellipse cx="100" cy="105" rx="48" ry="52" fill="#ffd770"/>
                 
-                <!-- 頭髮 (豎起的短髮) -->
+                <!-- 頭髮 (更像Victor的髮型) -->
                 <g id="hair">
-                    <path d="M70 80 L80 50 L90 80" stroke="#000" stroke-width="8" fill="none"/>
-                    <path d="M85 80 L95 45 L105 80" stroke="#000" stroke-width="8" fill="none"/>
-                    <path d="M100 80 L110 50 L120 80" stroke="#000" stroke-width="8" fill="none"/>
+                    <path d="M60 90 C70 40 130 40 140 90" fill="#000"/>
+                    <path d="M65 85 L75 55 L85 85" stroke="#000" stroke-width="7" fill="none"/>
+                    <path d="M80 85 L90 50 L100 85" stroke="#000" stroke-width="7" fill="none"/>
+                    <path d="M95 85 L105 45 L115 85" stroke="#000" stroke-width="7" fill="none"/>
+                    <path d="M110 85 L120 55 L130 85" stroke="#000" stroke-width="7" fill="none"/>
                 </g>
                 
-                <!-- 眼鏡 (方形) -->
+                <!-- 眼鏡 (更大更方) -->
                 <g id="glasses">
-                    <rect x="65" y="75" width="30" height="30" fill="none" stroke="#000" stroke-width="3"/>
-                    <rect x="105" y="75" width="30" height="30" fill="none" stroke="#000" stroke-width="3"/>
-                    <line x1="95" y1="90" x2="105" y2="90" stroke="#000" stroke-width="3"/>
-                    <line x1="65" y1="90" x2="55" y2="85" stroke="#000" stroke-width="3"/>
-                    <line x1="135" y1="90" x2="145" y2="85" stroke="#000" stroke-width="3"/>
+                    <rect x="60" y="75" width="35" height="32" fill="none" stroke="#000" stroke-width="4" rx="3"/>
+                    <rect x="105" y="75" width="35" height="32" fill="none" stroke="#000" stroke-width="4" rx="3"/>
+                    <line x1="95" y1="90" x2="105" y2="90" stroke="#000" stroke-width="4"/>
+                    <line x1="60" y1="90" x2="50" y2="88" stroke="#000" stroke-width="4"/>
+                    <line x1="140" y1="90" x2="150" y2="88" stroke="#000" stroke-width="4"/>
                 </g>
                 
                 <!-- 眼睛 -->
-                <circle cx="80" cy="90" r="5" fill="#000" class="eye"/>
-                <circle cx="120" cy="90" r="5" fill="#000" class="eye"/>
+                <ellipse cx="77" cy="91" rx="4" ry="3" fill="#000" class="eye"/>
+                <ellipse cx="122" cy="91" rx="4" ry="3" fill="#000" class="eye"/>
+                
+                <!-- 眉毛 -->
+                <g id="eyebrows">
+                    <path d="M65 72 Q77 69 90 73" stroke="#000" stroke-width="2.5" fill="none"/>
+                    <path d="M110 73 Q122 69 135 72" stroke="#000" stroke-width="2.5" fill="none"/>
+                </g>
                 
                 <!-- 嘴巴 (可變表情) -->
-                <path id="mouth" d="M85 120 Q100 130 115 120" stroke="#000" stroke-width="3" fill="none"/>
-                
-                <!-- 表情變化用的眉毛 -->
-                <g id="eyebrows" opacity="0">
-                    <path d="M65 70 L95 75" stroke="#000" stroke-width="3"/>
-                    <path d="M105 75 L135 70" stroke="#000" stroke-width="3"/>
-                </g>
+                <path id="mouth" d="M85 125 Q100 130 115 125" stroke="#000" stroke-width="2" fill="none"/>
             </svg>
             <div id="speech-bubble" class="speech-bubble hidden">
                 <p></p>

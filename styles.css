@@ -135,9 +135,9 @@ h1 {
 }
 
 #victor.angry #eyebrows {
-    opacity: 1;
     animation: angryBrows 0.3s infinite;
     stroke: #ff0000;
+    stroke-width: 3;
 }
 
 #victor.angry #mouth {
@@ -146,8 +146,12 @@ h1 {
     stroke-width: 4;
 }
 
-#victor.angry #hair path {
-    animation: spikyHair 0.3s infinite;
+#victor.angry #hair {
+    animation: angryHair 0.3s infinite;
+}
+
+#victor.angry #glasses {
+    animation: shakeGlasses 0.3s infinite;
 }
 
 .character-container.angry {
@@ -181,15 +185,21 @@ h1 {
     50% { transform: translateY(-3px) rotate(-10deg); }
 }
 
-@keyframes spikyHair {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(1.2); }
+@keyframes angryHair {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50% { transform: translateY(-3px) scaleY(1.1); }
+}
+
+@keyframes shakeGlasses {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
 }
 
 @keyframes angryShake {
     0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(-5px, 2px); }
-    75% { transform: translate(5px, -2px); }
+    25% { transform: translate(-3px, 1px); }
+    75% { transform: translate(3px, -1px); }
 }
 
 @keyframes backgroundFlash {
