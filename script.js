@@ -15,8 +15,14 @@ const expressions = {
 };
 
 // 音效
-let screamSound = null;
-let isAudioLoaded = false;
+let sounds = {
+    ouch: null,  // 哎也
+    pain: null,  // 好痛
+    isLoaded: {
+        ouch: false,
+        pain: false
+    }
+};
 
 // Victor 的挑釁語句
 const taunts = [
@@ -34,19 +40,84 @@ let currentExpression = 'normal';
 let idleTimer = null;
 
 // 預加載音效
-function loadSounds() {
+async function loadSounds() {
     try {
-        screamSound = new Audio('sounds/scream.mp3');
-        screamSound.volume = 1.0;
-        
-        screamSound.addEventListener('canplaythrough', () => {
-            isAudioLoaded = true;
-            console.log('Sound loaded successfully');
-        });
-        
-        screamSound.load();
+        // 載入哎也音效
+        sounds.ouch = new Audio('sounds/哎也.mp3');
+        sounds.pain = new Audio('sounds/好痛.mp3');
+
+        // 設置音量
+        sounds.ouch.volume = 1.0;
+        sounds.pain.volume = 1.0;
+
+        // 等待音效載入
+        await Promise.all([
+            new Promise(resolve => {
+                sounds.ouch.addEventListener('canplaythrough', () => {
+                    sounds.isLoaded.ouch = true;
+                    console.log('Ouch sound loaded successfully');
+                    resolve();
+                }, { once: true });
+            }),
+            new Promise(resolve => {
+                sounds.pain.addEventListener('canplaythrough', () => {
+                    sounds.isLoaded.pain = true;
+                    console.log('Pain sound loaded successfully');
+                    resolve();
+                }, { once: true });
+            })
+        ]);
+
+        // 在用戶互動時初始化音效
+        document.addEventListener('click', initSounds, { once: true });
+        document.addEventListener('touchstart', initSounds, { once: true });
+
     } catch (e) {
         console.log('Audio not supported:', e);
+    }
+}
+
+// 初始化音效
+async function initSounds() {
+    try {
+        // 靜音播放以解鎖音效
+        sounds.ouch.volume = 0;
+        sounds.pain.volume = 0;
+        await Promise.all([
+            sounds.ouch.play().catch(() => {}),
+            sounds.pain.play().catch(() => {})
+        ]);
+        
+        // 恢復音量
+        sounds.ouch.volume = 1.0;
+        sounds.pain.volume = 1.0;
+    } catch (e) {
+        console.log('Sound initialization error:', e);
+    }
+}
+
+// 播放隨機音效
+async function playRandomSound(isAngry = false) {
+    try {
+        const soundType = Math.random() < 0.5 ? 'ouch' : 'pain';
+        const sound = sounds[soundType];
+        
+        if (sound && sounds.isLoaded[soundType]) {
+            // 創建新的音效實例
+            const newSound = new Audio(sound.src);
+            newSound.volume = isAngry ? 1.5 : 1.0;
+            newSound.playbackRate = isAngry ? 0.8 : 1.0;
+            
+            // 播放音效
+            await newSound.play();
+            
+            // 監聽播放結束事件來清理
+            newSound.addEventListener('ended', () => {
+                newSound.remove();
+            }, { once: true });
+        }
+    } catch (error) {
+        console.log('Sound play error:', error);
     }
 }
 
@@ -152,13 +223,7 @@ function handleHit(event) {
     hitsLeft.textContent = hitsToAngry;
     
     // 播放音效
-    if (screamSound && isAudioLoaded) {
-        screamSound.currentTime = 0;
-        screamSound.volume = 1.0;
-        screamSound.play()
-            .then(() => console.log('Sound played successfully'))
-            .catch(error => console.log('Sound play error:', error));
-    }
+    playRandomSound();
     
     // 添加打擊動畫
     victor.classList.remove('hit');
@@ -173,21 +238,14 @@ function handleHit(event) {
         document.querySelector('.character-container').classList.add('angry');
         speechBubble.classList.add('hidden');
         
-        // 播放特殊音效或顯示特殊效果
-        if (screamSound && isAudioLoaded) {
-            screamSound.volume = 1.5;
-            screamSound.playbackRate = 0.8;
-        }
+        // 播放特殊音效
+        playRandomSound(true);
     } else if (score % 10 === 1) {
         // 恢復正常
         changeExpression('normal');
         victor.classList.remove('angry');
         document.querySelector('.character-container').classList.remove('angry');
         
-        if (screamSound && isAudioLoaded) {
-            screamSound.volume = 1.0;
-            screamSound.playbackRate = 1.0;
-        }
     } else {
         // 隨機表情
         const newExpression = getRandomExpression();
