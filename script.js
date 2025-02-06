@@ -164,8 +164,11 @@ function resetIdleTimer() {
 }
 
 // 點擊事件處理
-function handleHit(event) {
+async function handleHit(event) {
     event.preventDefault();
+    
+    // 確保音效已初始化
+    await initSounds().catch(console.error);
     
     // 獲取點擊或觸摸位置
     let x, y;
@@ -282,6 +285,10 @@ function resetGame() {
 const container = document.querySelector('.character-container');
 container.addEventListener('mousedown', handleHit);
 container.addEventListener('touchstart', handleHit, { passive: false });
+
+// 確保音效在第一次互動時初始化
+container.addEventListener('mousedown', initSounds, { once: true });
+container.addEventListener('touchstart', initSounds, { once: true });
 
 // 添加觸摸反饋
 container.addEventListener('mouseenter', () => {
