@@ -22,52 +22,55 @@
         
         <div class="character-container">
             <svg id="victor" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <!-- 頭部 -->
-                <ellipse cx="100" cy="105" rx="48" ry="52" fill="#ffd770"/>
+                <!-- 頭部 (更準確的形狀) -->
+                <path d="M60 105 C60 65 85 45 100 45 C115 45 140 65 140 105 C140 140 120 155 100 155 C80 155 60 140 60 105" fill="#ffe0bd"/>
                 
-                <!-- 頭髮 (現代時尚造型) -->
+                <!-- 頭髮 (更蓬鬆的造型) -->
                 <g id="hair">
-                    <!-- 基本髮型形狀 -->
-                    <path d="M60 70 C75 20 125 20 140 70" fill="#000"/>
-                    <!-- 時尚頂部 -->
-                    <path d="M70 70 C90 15 110 15 130 70" fill="#000"/>
-                    <!-- 造型髮絲 -->
-                    <path d="M85 70 L95 25 L105 70" stroke="#000" stroke-width="4" fill="none"/>
-                    <path d="M90 70 L100 20 L110 70" stroke="#000" stroke-width="4" fill="none"/>
-                    <path d="M80 70 L90 30 L100 70" stroke="#000" stroke-width="3" fill="none"/>
-                    <!-- 時尚側邊 -->
-                    <path d="M65 70 C70 45 75 40 85 70" stroke="#000" stroke-width="3" fill="none"/>
-                    <path d="M115 70 C125 40 130 45 135 70" stroke="#000" stroke-width="3" fill="none"/>
-                    <!-- 層次感 -->
-                    <path d="M75 70 L85 35 L95 70" stroke="#000" stroke-width="2" fill="none"/>
-                    <path d="M105 70 L115 35 L125 70" stroke="#000" stroke-width="2" fill="none"/>
-                    <!-- 細節紋理 -->
-                    <path d="M80 70 Q95 25 110 70" stroke="#000" stroke-width="1.5" fill="none"/>
-                    <path d="M85 70 Q100 20 115 70" stroke="#000" stroke-width="1.5" fill="none"/>
-                    <path d="M90 70 Q100 30 110 70" stroke="#000" stroke-width="1" fill="none"/>
+                    <!-- 基本髮型 -->
+                    <path d="M55 75 C65 20 135 20 145 75" fill="#8B4513"/>
+                    <!-- 上揚前髮 -->
+                    <path d="M70 75 C85 15 115 15 130 75" fill="#8B4513"/>
+                    <path d="M80 75 C95 10 105 10 120 75" fill="#8B4513"/>
+                    <!-- 髮絲細節 -->
+                    <path d="M85 75 C95 25 105 25 115 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    <path d="M90 75 C100 20 110 20 120 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    <!-- 側邊造型 -->
+                    <path d="M60 75 C65 50 70 45 75 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    <path d="M125 75 C130 45 135 50 140 75" stroke="#A0522D" stroke-width="2" fill="none"/>
+                    <!-- 額外髮絲 -->
+                    <path d="M75 75 Q90 30 105 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                    <path d="M95 75 Q110 30 125 75" stroke="#A0522D" stroke-width="1.5" fill="none"/>
+                    <!-- 前髮重點 -->
+                    <path d="M90 75 C95 15 105 15 110 75" stroke="#A0522D" stroke-width="2.5" fill="none"/>
+                    <path d="M85 75 C90 20 100 20 105 75" stroke="#A0522D" stroke-width="2" fill="none"/>
                 </g>
                 
-                <!-- 眼鏡 (更大更方) -->
+                <!-- 眼鏡 (更粗框) -->
                 <g id="glasses">
-                    <rect x="60" y="75" width="35" height="32" fill="none" stroke="#000" stroke-width="4" rx="3"/>
-                    <rect x="105" y="75" width="35" height="32" fill="none" stroke="#000" stroke-width="4" rx="3"/>
-                    <line x1="95" y1="90" x2="105" y2="90" stroke="#000" stroke-width="4"/>
-                    <line x1="60" y1="90" x2="50" y2="88" stroke="#000" stroke-width="4"/>
-                    <line x1="140" y1="90" x2="150" y2="88" stroke="#000" stroke-width="4"/>
+                    <rect x="63" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                    <rect x="105" y="78" width="32" height="30" fill="none" stroke="#000" stroke-width="2.5" rx="2"/>
+                    <line x1="95" y1="93" x2="105" y2="93" stroke="#000" stroke-width="2.5"/>
+                    <line x1="63" y1="93" x2="53" y2="91" stroke="#000" stroke-width="2.5"/>
+                    <line x1="137" y1="93" x2="147" y2="91" stroke="#000" stroke-width="2.5"/>
                 </g>
                 
-                <!-- 眼睛 -->
-                <ellipse cx="77" cy="91" rx="4" ry="3" fill="#000" class="eye"/>
-                <ellipse cx="122" cy="91" rx="4" ry="3" fill="#000" class="eye"/>
+                <!-- 眼睛 (更自然) -->
+                <g id="eyes">
+                    <path d="M75 94 Q80 91 85 94" stroke="#000" stroke-width="1.5" fill="none"/>
+                    <path d="M115 94 Q120 91 125 94" stroke="#000" stroke-width="1.5" fill="none"/>
+                    <circle cx="80" cy="94" r="3" fill="#000"/>
+                    <circle cx="120" cy="94" r="3" fill="#000"/>
+                </g>
                 
-                <!-- 眉毛 -->
+                <!-- 眉毛 (更自然) -->
                 <g id="eyebrows">
-                    <path d="M65 72 Q77 69 90 73" stroke="#000" stroke-width="2.5" fill="none"/>
-                    <path d="M110 73 Q122 69 135 72" stroke="#000" stroke-width="2.5" fill="none"/>
+                    <path d="M70 75 Q80 73 90 75" stroke="#4a3000" stroke-width="2" fill="none"/>
+                    <path d="M110 75 Q120 73 130 75" stroke="#4a3000" stroke-width="2" fill="none"/>
                 </g>
                 
-                <!-- 嘴巴 (可變表情) -->
-                <path id="mouth" d="M85 125 Q100 130 115 125" stroke="#000" stroke-width="2" fill="none"/>
+                <!-- 嘴巴 (溫和微笑) -->
+                <path id="mouth" d="M90 125 Q100 128 110 125" stroke="#000" stroke-width="1.5" fill="none"/>
             </svg>
             <div id="speech-bubble" class="speech-bubble hidden">
                 <p></p>
