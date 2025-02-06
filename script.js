@@ -8,6 +8,7 @@ const resetBtn = document.getElementById('resetBtn');
 
 // 音效
 let screamSound = null;
+let isAudioLoaded = false;
 
 // Victor 的挑釁語句
 const taunts = [
@@ -29,11 +30,36 @@ const speechText = speechBubble.querySelector('p');
 // 預加載音效
 function loadSounds() {
     try {
-        // 使用男性慘叫聲音效
         screamSound = new Audio('sounds/scream.mp3');
-        screamSound.load();
+        screamSound.volume = 1.0;  // 確保音量最大
+        
+        // 預加載音效
+        const preloadSound = () => {
+            screamSound.load();
+            // 檢查是否已加載
+            if (screamSound.readyState >= 2) {
+                isAudioLoaded = true;
+                console.log('Sound loaded successfully');
+            } else {
+                // 如果還沒加載完成,繼續監聽
+                screamSound.addEventListener('canplaythrough', () => {
+                    isAudioLoaded = true;
+                    console.log('Sound loaded successfully');
+                });
+            }
+        };
+
+        // 立即開始預加載
+        preloadSound();
+        
+        // 確保音效已加載
+        screamSound.addEventListener('error', (e) => {
+            console.log('Sound load error:', e);
+            // 嘗試重新加載
+            setTimeout(preloadSound, 1000);
+        });
     } catch (e) {
-        console.log('Audio not supported');
+        console.log('Audio not supported:', e);
     }
 }
 
@@ -91,9 +117,28 @@ function handleHit(event) {
     }
     
     // 播放慘叫音效
-    if (screamSound) {
-        screamSound.currentTime = 0;
-        screamSound.play().catch(() => {});
+    if (screamSound && isAudioLoaded) {
+        const playSound = () => {
+            screamSound.currentTime = 0;
+            screamSound.volume = 1.0;
+            const playPromise = screamSound.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => console.log('Sound played successfully'))
+                    .catch(error => {
+                        console.log('Sound play error:', error);
+                        // 如果播放失敗,重新加載並重試
+                        screamSound.load();
+                        setTimeout(() => {
+                            screamSound.play().catch(() => {});
+                        }, 100);
+                    });
+            }
+        };
+        
+        // 短暫延遲確保音效與動畫同步
+        setTimeout(playSound, 50);
     }
     
     // 每10分變臉
