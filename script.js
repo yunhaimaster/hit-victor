@@ -179,8 +179,20 @@ function updateStatusIndicator(online) {
 }
 
 function updateHighScoreDisplay() {
-    document.getElementById('highScore').textContent = highScore;
-    document.getElementById('highScorePlayer').textContent = highScorePlayer;
+    const localScore = parseInt(localStorage.getItem('highScore') || '0');
+    const localPlayer = localStorage.getItem('highScorePlayer') || '無人';
+    
+    // Show local record if it's higher than server record
+    if (localScore > highScore) {
+        document.getElementById('highScore').textContent = localScore;
+        document.getElementById('highScorePlayer').innerHTML = `${localPlayer} <span class="local-tag">(本地)</span>`;
+        // Add tooltip to explain
+        document.getElementById('highScorePlayer').title = '這是本地記錄。等待管理員審核並同步到伺服器。';
+    } else {
+        document.getElementById('highScore').textContent = highScore;
+        document.getElementById('highScorePlayer').innerHTML = highScorePlayer;
+        document.getElementById('highScorePlayer').title = '';
+    }
 }
 
 // Replace the loadSounds function
