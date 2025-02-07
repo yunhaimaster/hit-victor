@@ -142,9 +142,124 @@ function resetIdleTimer() {
     idleTimer = setTimeout(showTaunt, 1000);
 }
 
-// 點擊事件處理
+// Add new state variables
+let moodLevel = 100; // 100 = happy, 0 = very unhappy
+let damageLevel = 0; // 0 = normal, 100 = very bruised
+
+function updateVictorState() {
+    // Update mood over time
+    if (!isHit && score % 10 !== 0) {  // 唔係憤怒模式先至會改變表情
+        moodLevel = Math.max(0, moodLevel - 0.1);
+        
+        // 根據心情值改變表情
+        if (moodLevel > 75) {
+            changeExpression('normal');
+        } else if (moodLevel > 50) {
+            changeExpression('sad');
+        } else if (moodLevel > 25) {
+            changeExpression('hurt');
+        } else {
+            changeExpression('angry');
+        }
+        
+        // 套用傷害效果
+        const victor = document.getElementById('victor');
+        victor.style.filter = `hue-rotate(${damageLevel * 0.5}deg) brightness(${100 - damageLevel * 0.3}%)`;
+    }
+}
+
+// 改返時間相關變量
+let timeLeft = 20;  // 改做20秒
+let timerInterval = null;
+let isGameActive = false;
+
+// 加入最高分變量
+let highScore = localStorage.getItem('highScore') || 0;
+let highScorePlayer = localStorage.getItem('highScorePlayer') || '無人';
+
+// 更新 resetGame 函數
+function resetGame() {
+    score = 0;
+    moodLevel = 100;
+    damageLevel = 0;
+    timeLeft = 20;
+    
+    // 更新顯示
+    document.getElementById('score').textContent = '0';
+    document.getElementById('timer').textContent = '20';
+    document.getElementById('timer').classList.remove('timer-urgent');
+    
+    // 重置遊戲狀態
+    if (timerInterval) clearInterval(timerInterval);
+    isGameActive = true;
+    startTimer();
+    
+    // 更新按鈕文字
+    resetBtn.textContent = '重新開始';
+    
+    // 添加開始動畫
+    document.getElementById('timer').classList.add('game-started');
+    document.querySelector('.score-board').classList.add('game-started');
+    
+    updateExpression();
+}
+
+// 改返 startTimer 函數入面嘅時間
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (timeLeft > 0 && isGameActive) {
+            timeLeft--;
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeLeft;
+            
+            // 時間少於5秒時顯示緊急動畫
+            if (timeLeft <= 5) {
+                timerElement.classList.add('timer-urgent');
+            }
+            
+            // 最後7秒 Victor 會更加激動
+            if (timeLeft <= 7) {
+                victor.style.animation = 'shake 0.3s infinite';
+            }
+        } else {
+            endGame();
+        }
+    }, 1000);
+}
+
+// 更新 endGame 函數
+function endGame() {
+    isGameActive = false;
+    clearInterval(timerInterval);
+    
+    // 檢查是否破紀錄
+    if (score > highScore) {
+        const playerName = prompt('恭喜破紀錄！請輸入你嘅名：', '');
+        if (playerName) {
+            highScore = score;
+            highScorePlayer = playerName;
+            localStorage.setItem('highScore', highScore);
+            localStorage.setItem('highScorePlayer', highScorePlayer);
+            document.getElementById('highScore').textContent = highScore;
+            document.getElementById('highScorePlayer').textContent = highScorePlayer;
+        }
+    }
+    
+    // 顯示結果
+    alert(`時間到！\n你嘅分數係：${score}\n最高分：${highScore} (${highScorePlayer})\n平均每秒打中 ${(score/20).toFixed(2)} 下！`);
+    
+    // 停止所有動畫
+    victor.style.animation = '';
+    victor.classList.remove('angry');
+    document.querySelector('.character-container').classList.remove('angry');
+    
+    // 改返做「開始」
+    resetBtn.textContent = '開始';
+}
+
+// 修改 handleHit 函數
 function handleHit(event) {
-    event.preventDefault();
+    if (!isGameActive) return;
     
     // 獲取點擊或觸摸位置
     let x, y;
@@ -178,32 +293,13 @@ function handleHit(event) {
         return;
     }
     
-    // 添加點擊效果
-    const ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    container.appendChild(ripple);
-    
-    // 移除點擊效果
-    setTimeout(() => {
-        ripple.remove();
-    }, 1000);
-    
     resetIdleTimer();
     score += 1;
     scoreElement.textContent = score;
     
-    // 更新進度條
-    const progressFill = document.querySelector('.progress-fill');
-    const hitsLeft = document.querySelector('.hits-left');
-    const hitsToAngry = 10 - (score % 10);
-    progressFill.style.width = `${((10 - hitsToAngry) / 10) * 100}%`;
-    hitsLeft.textContent = hitsToAngry;
-    
     // 播放音效
     if (isAudioInitialized) {
-        audioPool.play(score % 10 === 0); // Pass true if in angry mode
+        audioPool.play(false);  // 移除暴走模式參數
     }
     
     // 添加打擊動畫
@@ -211,52 +307,25 @@ function handleHit(event) {
     void victor.offsetWidth;
     victor.classList.add('hit');
     
-    // 根據分數切換表情
-    if (score % 10 === 0) {
-        // 憤怒模式
-        changeExpression('angry');
-        victor.classList.add('angry');
-        document.querySelector('.character-container').classList.add('angry');
-        speechBubble.classList.add('hidden');
-        
-        // 播放特殊音效
-        audioPool.play(true);
-    } else if (score % 10 === 1) {
-        // 恢復正常
-        changeExpression('normal');
-        victor.classList.remove('angry');
-        document.querySelector('.character-container').classList.remove('angry');
-        
-    } else {
-        // 隨機表情
-        const newExpression = getRandomExpression();
-        changeExpression(newExpression);
-        
-        // 0.5秒後恢復正常表情
-        setTimeout(() => {
-            if (currentExpression !== 'angry') {
-                changeExpression('normal');
-            }
-        }, 500);
-    }
+    // 隨機表情
+    const newExpression = getRandomExpression();
+    changeExpression(newExpression);
+    
+    // Decrease mood with each hit
+    moodLevel = Math.max(0, moodLevel - 10);
+    damageLevel = Math.min(100, damageLevel + 5);
+    
+    updateExpression();
     
     // 防止事件冒泡
     event.stopPropagation();
-}
-
-// 重置遊戲
-function resetGame() {
-    score = 0;
-    scoreElement.textContent = score;
-    changeExpression('normal');
-    victor.classList.remove('angry');
-    document.querySelector('.character-container').classList.remove('angry');
     
-    // 重置進度條
-    const progressFill = document.querySelector('.progress-fill');
-    const hitsLeft = document.querySelector('.hits-left');
-    progressFill.style.width = '0%';
-    hitsLeft.textContent = '10';
+    // 打得快有額外時間獎勵
+    if (timeLeft < 18) {
+        const hitBonus = 0.2;
+        timeLeft = Math.min(20, timeLeft + hitBonus);
+        document.getElementById('timer').textContent = Math.ceil(timeLeft);
+    }
 }
 
 // 事件監聽
@@ -310,4 +379,9 @@ window.addEventListener('load', () => {
     speechBubble.classList.remove('hidden');
     // 設置定時器來更新挑釁語句
     idleTimer = setTimeout(showTaunt, 2000);
+    document.getElementById('highScore').textContent = highScore;
+    document.getElementById('highScorePlayer').textContent = highScorePlayer;
 });
+
+// Add interval to update Victor's state
+setInterval(updateVictorState, 100);  // 每 0.1 秒更新一次
