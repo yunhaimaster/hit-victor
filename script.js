@@ -145,11 +145,17 @@ function resetIdleTimer() {
 // Add new state variables
 let moodLevel = 100; // 100 = happy, 0 = very unhappy
 let damageLevel = 0; // 0 = normal, 100 = very bruised
+let lastHitTime = 0; // Track the last hit time
 
 function updateVictorState() {
+    const now = Date.now();
+    const timeSinceLastHit = now - lastHitTime;
+    const isRecovering = timeSinceLastHit > 1000; // 1 second since last hit
+
     // Update mood over time
-    if (!isHit && score % 10 !== 0) {  // 唔係憤怒模式先至會改變表情
-        moodLevel = Math.max(0, moodLevel - 0.1);
+    if (isRecovering && score % 10 !== 0) {
+        moodLevel = Math.min(100, moodLevel + 0.1); // Slowly recover mood
+        damageLevel = Math.max(0, damageLevel - 0.05); // Slowly recover from damage
         
         // 根據心情值改變表情
         if (moodLevel > 75) {
@@ -163,7 +169,6 @@ function updateVictorState() {
         }
         
         // 套用傷害效果
-        const victor = document.getElementById('victor');
         victor.style.filter = `hue-rotate(${damageLevel * 0.5}deg) brightness(${100 - damageLevel * 0.3}%)`;
     }
 }
@@ -183,6 +188,7 @@ function resetGame() {
     moodLevel = 100;
     damageLevel = 0;
     timeLeft = 20;
+    lastHitTime = 0;
     
     // 更新顯示
     document.getElementById('score').textContent = '0';
@@ -201,16 +207,18 @@ function resetGame() {
     document.getElementById('timer').classList.add('game-started');
     document.querySelector('.score-board').classList.add('game-started');
     
-    updateExpression();
+    // Reset Victor's appearance
+    victor.style.filter = '';
+    changeExpression('normal');
 }
 
 // 改返 startTimer 函數入面嘅時間
 function startTimer() {
     timerInterval = setInterval(() => {
         if (timeLeft > 0 && isGameActive) {
-            timeLeft--;
+            timeLeft = Math.max(0, timeLeft - 1); // Ensure timeLeft doesn't go below 0
             const timerElement = document.getElementById('timer');
-            timerElement.textContent = timeLeft;
+            timerElement.textContent = Math.ceil(timeLeft); // Always show whole numbers
             
             // 時間少於5秒時顯示緊急動畫
             if (timeLeft <= 5) {
@@ -234,7 +242,7 @@ function endGame() {
     
     // 檢查是否破紀錄
     if (score > highScore) {
-        const playerName = prompt('恭喜破紀錄！請輸入你嘅名：', '');
+        const playerName = prompt('恭喜破紀錄!請輸入你嘅名:', '');
         if (playerName) {
             highScore = score;
             highScorePlayer = playerName;
@@ -246,7 +254,7 @@ function endGame() {
     }
     
     // 顯示結果
-    alert(`時間到！\n你嘅分數係：${score}\n最高分：${highScore} (${highScorePlayer})\n平均每秒打中 ${(score/20).toFixed(2)} 下！`);
+    alert(`時間到!\n你嘅分數係:${score}\n最高分:${highScore} (${highScorePlayer})\n平均每秒打中 ${(score/20).toFixed(2)} 下!`);
     
     // 停止所有動畫
     victor.style.animation = '';
@@ -265,41 +273,37 @@ function handleHit(event) {
     let x, y;
     if (event.type.startsWith('touch')) {
         const touch = event.touches[0];
-        const container = document.querySelector('.character-container');
-        const rect = container.getBoundingClientRect();
-        x = touch.clientX - rect.left;
-        y = touch.clientY - rect.top;
+        x = touch.clientX;
+        y = touch.clientY;
     } else {
-        const container = document.querySelector('.character-container');
-        const rect = container.getBoundingClientRect();
-        x = event.clientX - rect.left;
-        y = event.clientY - rect.top;
+        x = event.clientX;
+        y = event.clientY;
     }
     
-    // 檢查點擊是否在容器內
-    const container = document.querySelector('.character-container');
-    const rect = container.getBoundingClientRect();
-    if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
-        return;
-    }
+    // 檢查點擊是否在 Victor 的臉部區域內
+    const victorRect = victor.getBoundingClientRect();
+    const centerX = victorRect.left + victorRect.width / 2;
+    const centerY = victorRect.top + victorRect.height / 2;
+    const radius = Math.min(victorRect.width, victorRect.height) * 0.4; // Reduced hit area to face only
     
-    // 計算點擊位置相對於容器中心的距離
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+    const distance = Math.sqrt(
+        Math.pow(x - centerX, 2) + 
+        Math.pow(y - centerY, 2)
+    );
     
-    // 如果點擊位置離中心太遠,不觸發效果
-    if (distance > Math.min(rect.width, rect.height) / 2) {
+    // 如果點擊位置離臉部中心太遠,不觸發效果
+    if (distance > radius) {
         return;
     }
     
     resetIdleTimer();
     score += 1;
     scoreElement.textContent = score;
+    lastHitTime = Date.now();
     
     // 播放音效
     if (isAudioInitialized) {
-        audioPool.play(false);  // 移除暴走模式參數
+        audioPool.play(moodLevel < 25);  // When mood is low, play angry sounds
     }
     
     // 添加打擊動畫
@@ -315,8 +319,6 @@ function handleHit(event) {
     moodLevel = Math.max(0, moodLevel - 10);
     damageLevel = Math.min(100, damageLevel + 5);
     
-    updateExpression();
-    
     // 防止事件冒泡
     event.stopPropagation();
     
@@ -324,7 +326,7 @@ function handleHit(event) {
     if (timeLeft < 18) {
         const hitBonus = 0.2;
         timeLeft = Math.min(20, timeLeft + hitBonus);
-        document.getElementById('timer').textContent = Math.ceil(timeLeft);
+        document.getElementById('timer').textContent = Math.ceil(timeLeft); // Always show whole numbers
     }
 }
 

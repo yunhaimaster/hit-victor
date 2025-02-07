@@ -1,3 +1,4 @@
+/* Previous CSS remains the same until .game-container */
 * {
     margin: 0;
     padding: 0;
@@ -10,8 +11,8 @@ body {
     align-items: center;
     min-height: 100vh;
     height: 100vh;
-    background: linear-gradient(135deg, #6e8efb, #ff6b95);
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     padding: 10px;
     color: #2c3e50;
     overflow: hidden;
@@ -20,18 +21,20 @@ body {
 h1 {
     color: white;
     margin-bottom: 20px;
-    font-size: 2.5em;
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    font-size: 2.8em;
+    font-weight: 800;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
 }
 
 .instructions {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     padding: 25px;
-    border-radius: 20px;
+    border-radius: 24px;
     margin-bottom: 30px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .instruction-content {
@@ -41,212 +44,153 @@ h1 {
 }
 
 .instruction-title {
-    font-size: 1.3em;
-    font-weight: 600;
-    color: #2c3e50;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #1a1a1a;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .instruction-title .icon {
-    font-size: 1.4em;
+    font-size: 1.5em;
 }
 
 .instruction-details {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .detail-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 1.1em;
-    color: #34495e;
+    gap: 12px;
+    font-size: 1.15em;
+    color: #2c3e50;
+    font-weight: 500;
 }
 
 .detail-item .icon {
-    font-size: 1.2em;
+    font-size: 1.3em;
 }
 
 .game-container {
     text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 25px;
+    border-radius: 30px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
     max-width: 800px;
     width: 100%;
     max-height: 100vh;
-    overflow-y: auto;
+    overflow: hidden; /* Changed from auto to hidden */
     display: flex;
     flex-direction: column;
-}
-
-@media (max-height: 800px) {
-    body {
-        padding: 5px;
-    }
-
-    .game-container {
-        padding: 10px;
-        gap: 8px;
-    }
-
-    h1 {
-        font-size: 1.6em;
-        margin-bottom: 5px;
-    }
-
-    .instructions {
-        padding: 8px;
-        margin-bottom: 8px;
-    }
-
-    .instruction-content {
-        gap: 5px;
-    }
-
-    .instruction-title {
-        font-size: 1em;
-        gap: 5px;
-    }
-
-    .instruction-details {
-        gap: 5px;
-    }
-
-    .detail-item {
-        font-size: 0.85em;
-        gap: 5px;
-    }
-
-    .score-container {
-        padding: 8px;
-        margin-bottom: 8px;
-    }
-
-    .score-label {
-        font-size: 0.9em;
-        margin-bottom: 3px;
-    }
-
-    .score-board {
-        font-size: 32px;
-        margin-bottom: 5px;
-    }
-
-    .score-progress {
-        margin-top: 5px;
-    }
-
-    .progress-text {
-        font-size: 0.8em;
-    }
-
-    .character-container {
-        width: 160px;
-        height: 160px;
-        margin: 8px auto;
-        padding: 5px;
-    }
-
-    .speech-bubble {
-        font-size: 12px;
-        padding: 8px 15px;
-        top: -50px;
-        min-width: 140px;
-    }
-
-    .speech-bubble::before {
-        width: 16px;
-        height: 16px;
-        bottom: -8px;
-    }
-
-    .controls {
-        margin-top: 8px;
-    }
-
-    #resetBtn {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 380px) {
-    .game-container {
-        padding: 8px;
-    }
-
-    .character-container {
-        width: 140px;
-        height: 140px;
-    }
-
-    .speech-bubble {
-        font-size: 11px;
-        padding: 6px 12px;
-        top: -45px;
-        min-width: 120px;
-        white-space: normal;
-        max-width: 160px;
-    }
-
-    .speech-bubble p {
-        word-break: break-word;
-    }
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative; /* Added position relative */
 }
 
 .score-container {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 20px;
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 24px;
     margin-bottom: 25px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
-.score-label {
-    font-size: 1.2em;
-    color: #34495e;
-    margin-bottom: 10px;
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 15px 0;
+    gap: 20px;
 }
 
-.score-board {
-    font-size: 48px;
-    font-weight: 700;
-    color: #2c3e50;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 15px;
+.timer-board, .score-board {
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    padding: 12px 25px;
+    border-radius: 20px;
+    text-align: center;
+    min-width: 120px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.score-progress {
-    margin-top: 15px;
+.high-score-board {
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    padding: 15px 30px;
+    border-radius: 20px;
+    margin: 15px auto;
+    text-align: center;
+    max-width: 250px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.progress-bar {
-    width: 100%;
-    height: 10px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #45a049);
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-.progress-text {
+.timer-label, .score-label, .high-score-label {
+    color: #fff;
     font-size: 0.9em;
-    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+#timer {
+    color: #ff4444;
+    font-size: 28px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,68,68,0.3);
+}
+
+#score, .high-score-content {
+    color: #ffdd44;
+    font-size: 28px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,221,68,0.3);
+}
+
+#highScorePlayer {
+    color: #88ff88;
+    font-size: 18px;
+    margin-left: 10px;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(136,255,136,0.3);
+}
+
+.controls {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#resetBtn {
+    background: linear-gradient(145deg, #ff4444, #ff2222);
+    color: white;
+    padding: 15px 35px;
+    border: none;
+    border-radius: 30px;
+    font-size: 20px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(255,68,68,0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#resetBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255,68,68,0.4);
+    background: linear-gradient(145deg, #ff5555, #ff3333);
+}
+
+#resetBtn:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 15px rgba(255,68,68,0.3);
 }
 
 .character-container {
@@ -254,71 +198,16 @@ h1 {
     height: 280px;
     margin: 40px auto;
     position: relative;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
     padding: 10px;
-    transition: all 0.3s ease;
-    overflow: visible;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden; /* Added overflow hidden */
     cursor: pointer;
     z-index: 1;
-}
-
-.character-container:hover,
-.character-container.hover {
-    transform: scale(1.02);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-
-.character-container:active,
-.character-container.active {
-    transform: scale(0.98);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.character-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.character-container:active::after {
-    opacity: 1;
-}
-
-.ripple {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: rippleEffect 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 10;
-}
-
-@keyframes rippleEffect {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(40);
-        opacity: 0;
-    }
+    border: 2px solid rgba(255,255,255,0.3);
 }
 
 .character {
@@ -329,24 +218,7 @@ h1 {
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-}
-
-.character::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle, transparent 60%, rgba(255,255,255,0.1) 100%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.character:hover::before {
-    opacity: 1;
+    overflow: hidden; /* Added overflow hidden */
 }
 
 .expression {
@@ -356,34 +228,48 @@ h1 {
     transition: all 0.3s ease;
     opacity: 1;
     transform-origin: center;
+    pointer-events: none; /* Added pointer-events none */
 }
 
 .character svg {
     width: 100%;
     height: 100%;
     display: block;
+    pointer-events: none; /* Added pointer-events none */
+}
+
+.character-container:hover,
+.character-container.hover {
+    transform: scale(1.03);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.character-container:active,
+.character-container.active {
+    transform: scale(0.97);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
 .speech-bubble {
     position: absolute;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 15px 25px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 24px;
+    padding: 18px 28px;
     top: -90px;
     left: 50%;
     transform: translate(-50%, 0);
-    max-width: 250px;
-    min-width: 200px;
+    max-width: 280px;
+    min-width: 220px;
     opacity: 1;
-    transition: all 0.3s ease;
-    animation: bobbing 2s infinite;
-    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: bobbing 2.5s infinite;
+    font-size: 18px;
     font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    backdrop-filter: blur(12px);
+    border: 2px solid rgba(255,255,255,0.3);
     z-index: 2;
-    color: #2c3e50;
+    color: #1a1a1a;
     text-align: center;
     pointer-events: none;
     white-space: nowrap;
@@ -396,214 +282,163 @@ h1 {
     bottom: -12px;
     width: 24px;
     height: 24px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     transform: translateX(-50%) rotate(45deg);
     border-radius: 4px;
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 6px 6px 15px rgba(0,0,0,0.1);
     z-index: -1;
+    border-right: 2px solid rgba(255,255,255,0.3);
+    border-bottom: 2px solid rgba(255,255,255,0.3);
 }
 
-.speech-bubble.hidden {
-    opacity: 0;
-    transform: translate(-50%, -20px);
-}
-
+/* Rest of the CSS remains the same */
 @keyframes bobbing {
     0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, -8px); }
+    50% { transform: translate(-50%, -10px); }
 }
 
-.expression.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.expression.normal {
-    z-index: 1;
-}
-
-.expression.surprised {
-    z-index: 2;
-}
-
-.expression.hurt {
-    z-index: 3;
-}
-
-.expression.sad {
-    z-index: 4;
-}
-
-.expression.angry {
-    z-index: 5;
-}
-
-#victor.hit {
-    animation: shake 0.5s;
-}
-
-#victor.angry {
-    animation: angryShake 0.3s infinite;
-}
-
-.character-container.angry {
-    animation: backgroundFlash 0.3s infinite;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translate(0, 0) rotate(0); }
-    25% { transform: translate(-5px, 0) rotate(-2deg); }
-    50% { transform: translate(5px, 0) rotate(2deg); }
-    75% { transform: translate(-5px, 0) rotate(-2deg); }
-}
-
-@keyframes angryShake {
-    0%, 100% { transform: translate(0, 0) scale(1.05); }
-    25% { transform: translate(-3px, 1px) scale(1.05); }
-    75% { transform: translate(3px, -1px) scale(1.05); }
-}
-
-@keyframes backgroundFlash {
-    0%, 100% { background-color: transparent; }
-    50% { background-color: rgba(255, 0, 0, 0.2); }
-}
-
-.game-stats {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 10px 0;
-}
-
-.timer-board, .score-board {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 8px 15px;
-    border-radius: 15px;
-    text-align: center;
-    min-width: 80px;
-}
-
-.high-score-board {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-radius: 15px;
-    margin: 10px auto;
-    text-align: center;
-    max-width: 200px;
-}
-
-.controls {
-    text-align: center;
-    margin: 10px 0;
-}
-
-#resetBtn {
-    background: #ff4444;
-    color: white;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 25px;
-    font-size: 18px;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    animation: pulseButton 2s infinite;
-}
-
-@keyframes pulseButton {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-#resetBtn:active {
-    transform: scale(0.95);
-}
-
-.version-number {
-    position: fixed;
-    bottom: 5px;
-    right: 5px;
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.6);
-    font-family: monospace;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-.timer-board {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-radius: 15px;
-    margin: 10px;
-    text-align: center;
-}
-
-.timer-label {
-    color: #fff;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-#timer {
-    color: #ff4444;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-/* 時間緊急時嘅動畫 */
 .timer-urgent {
     animation: timerPulse 0.5s infinite;
 }
 
 @keyframes timerPulse {
-    0% { color: #ff4444; }
-    50% { color: #ff0000; transform: scale(1.1); }
-    100% { color: #ff4444; }
-}
-
-.high-score-board {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-radius: 15px;
-    margin: 10px;
-    text-align: center;
-}
-
-.high-score-label {
-    color: #fff;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.high-score-content {
-    color: #ffdd44;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-#highScorePlayer {
-    color: #88ff88;
-    font-size: 16px;
-    margin-left: 10px;
+    0% { color: #ff4444; transform: scale(1); }
+    50% { color: #ff0000; transform: scale(1.15); }
+    100% { color: #ff4444; transform: scale(1); }
 }
 
 .game-started {
-    animation: startPulse 0.5s ease-out;
+    animation: startPulse 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes startPulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
+    50% { transform: scale(1.25); }
     100% { transform: scale(1); }
 }
 
 #timer.game-started {
     color: #ff0000;
-    animation: timerStart 0.5s ease-out;
+    animation: timerStart 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes timerStart {
     0% { transform: scale(1); }
-    50% { transform: scale(1.3); color: #ffff00; }
+    50% { transform: scale(1.35); color: #ffff00; }
     100% { transform: scale(1); }
+}
+
+.version-number {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+@media (max-height: 800px) {
+    body {
+        padding: 8px;
+    }
+
+    .game-container {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+
+    .instructions {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .instruction-content {
+        gap: 8px;
+    }
+
+    .instruction-title {
+        font-size: 1.2em;
+        gap: 8px;
+    }
+
+    .instruction-details {
+        gap: 8px;
+    }
+
+    .detail-item {
+        font-size: 1em;
+        gap: 8px;
+    }
+
+    .character-container {
+        width: 200px;
+        height: 200px;
+        margin: 20px auto;
+    }
+
+    .speech-bubble {
+        font-size: 14px;
+        padding: 12px 20px;
+        top: -70px;
+        min-width: 180px;
+    }
+
+    #resetBtn {
+        padding: 12px 25px;
+        font-size: 16px;
+    }
+
+    .timer-board, .score-board {
+        padding: 10px 20px;
+    }
+
+    #timer, #score {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 380px) {
+    .game-container {
+        padding: 12px;
+    }
+
+    .character-container {
+        width: 180px;
+        height: 180px;
+        margin: 15px auto;
+    }
+
+    .speech-bubble {
+        font-size: 13px;
+        padding: 10px 18px;
+        top: -60px;
+        min-width: 160px;
+    }
+
+    .timer-board, .score-board {
+        padding: 8px 15px;
+        min-width: 100px;
+    }
+
+    #timer, #score {
+        font-size: 20px;
+    }
+
+    .timer-label, .score-label {
+        font-size: 0.8em;
+    }
+}
+
+.expression.hidden {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden; /* Added visibility hidden */
 }
