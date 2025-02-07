@@ -1,8 +1,19 @@
-/* Previous CSS remains the same until .game-container */
+:root {
+    --color-primary: #2D3436;
+    --color-secondary: #FF4757;
+    --color-accent: #5352ED;
+    --color-background: #1a2a6c;
+    --color-text: #2c3e50;
+    --color-text-light: #ffffff;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -11,27 +22,52 @@ body {
     align-items: center;
     min-height: 100vh;
     height: 100vh;
-    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    background: linear-gradient(135deg, var(--color-background), #b21f1f, #fdbb2d);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    padding: 10px;
-    color: #2c3e50;
+    padding: calc(10px + var(--safe-area-inset-top)) 10px calc(10px + var(--safe-area-inset-bottom));
+    color: var(--color-text);
     overflow: hidden;
 }
 
+.game-container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 20px;
+    border-radius: 30px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+    max-width: 800px;
+    width: 100%;
+    max-height: calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    gap: 15px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 0 10px;
+}
+
 h1 {
-    color: white;
-    margin-bottom: 20px;
-    font-size: 2.8em;
+    color: var(--color-primary);
+    font-size: 2.4em;
     font-weight: 800;
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
     letter-spacing: -0.5px;
+    margin: 0;
 }
 
 .instructions {
     background: rgba(255, 255, 255, 0.95);
-    padding: 25px;
+    padding: 20px;
     border-radius: 24px;
-    margin-bottom: 30px;
     backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     border: 1px solid rgba(255,255,255,0.2);
@@ -40,143 +76,112 @@ h1 {
 .instruction-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-}
-
-.instruction-title {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #1a1a1a;
-    display: flex;
-    align-items: center;
     gap: 12px;
 }
 
+.instruction-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .instruction-title .icon {
-    font-size: 1.5em;
+    font-size: 1.4em;
 }
 
 .instruction-details {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
 }
 
 .detail-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 1.15em;
-    color: #2c3e50;
+    gap: 10px;
+    font-size: 1.1em;
+    color: var(--color-text);
     font-weight: 500;
 }
 
 .detail-item .icon {
-    font-size: 1.3em;
-}
-
-.game-container {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.98);
-    padding: 25px;
-    border-radius: 30px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
-    backdrop-filter: blur(12px);
-    max-width: 800px;
-    width: 100%;
-    max-height: 100vh;
-    overflow: hidden; /* Changed from auto to hidden */
-    display: flex;
-    flex-direction: column;
-    border: 1px solid rgba(255,255,255,0.3);
-    position: relative; /* Added position relative */
-}
-
-.score-container {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 25px;
-    border-radius: 24px;
-    margin-bottom: 25px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 1.2em;
 }
 
 .game-stats {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 15px 0;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    padding: 0 10px;
 }
 
-.timer-board, .score-board {
+.stat-board {
     background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-    padding: 12px 25px;
+    padding: 12px 20px;
     border-radius: 20px;
     text-align: center;
-    min-width: 120px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-.high-score-board {
-    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-    padding: 15px 30px;
-    border-radius: 20px;
-    margin: 15px auto;
-    text-align: center;
-    max-width: 250px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.timer-label, .score-label, .high-score-label {
-    color: #fff;
+.stat-label {
+    color: var(--color-text-light);
     font-size: 0.9em;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
 }
 
-#timer {
-    color: #ff4444;
-    font-size: 28px;
+.stat-value {
+    font-size: 24px;
     font-weight: 700;
+}
+
+#timer {
+    color: var(--color-secondary);
     text-shadow: 0 0 10px rgba(255,68,68,0.3);
 }
 
-#score, .high-score-content {
+#score {
     color: #ffdd44;
-    font-size: 28px;
+    text-shadow: 0 0 10px rgba(255,221,68,0.3);
+}
+
+.high-score-content {
+    color: #ffdd44;
+    font-size: 20px;
     font-weight: 700;
     text-shadow: 0 0 10px rgba(255,221,68,0.3);
 }
 
 #highScorePlayer {
     color: #88ff88;
-    font-size: 18px;
-    margin-left: 10px;
+    font-size: 16px;
+    margin-left: 8px;
     font-weight: 600;
     text-shadow: 0 0 10px rgba(136,255,136,0.3);
 }
 
 .controls {
-    text-align: center;
-    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #resetBtn {
-    background: linear-gradient(145deg, #ff4444, #ff2222);
+    background: linear-gradient(145deg, var(--color-secondary), #ff2222);
     color: white;
-    padding: 15px 35px;
+    padding: 12px 30px;
     border: none;
-    border-radius: 30px;
-    font-size: 20px;
+    border-radius: 25px;
+    font-size: 18px;
     font-weight: 700;
     box-shadow: 0 6px 20px rgba(255,68,68,0.3);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -194,9 +199,9 @@ h1 {
 }
 
 .character-container {
-    width: 280px;
-    height: 280px;
-    margin: 40px auto;
+    width: min(280px, 70vw);
+    height: min(280px, 70vw);
+    margin: 20px auto;
     position: relative;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
@@ -204,10 +209,11 @@ h1 {
     box-shadow: 0 15px 35px rgba(0,0,0,0.15);
     padding: 10px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden; /* Added overflow hidden */
+    overflow: hidden;
     cursor: pointer;
     z-index: 1;
     border: 2px solid rgba(255,255,255,0.3);
+    touch-action: manipulation;
 }
 
 .character {
@@ -218,7 +224,7 @@ h1 {
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    overflow: hidden; /* Added overflow hidden */
+    overflow: hidden;
 }
 
 .expression {
@@ -228,14 +234,21 @@ h1 {
     transition: all 0.3s ease;
     opacity: 1;
     transform-origin: center;
-    pointer-events: none; /* Added pointer-events none */
+    pointer-events: none;
+    visibility: visible;
+}
+
+.expression.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
 }
 
 .character svg {
     width: 100%;
     height: 100%;
     display: block;
-    pointer-events: none; /* Added pointer-events none */
+    pointer-events: none;
 }
 
 .character-container:hover,
@@ -253,23 +266,23 @@ h1 {
 .speech-bubble {
     position: absolute;
     background: rgba(255, 255, 255, 0.98);
-    border-radius: 24px;
-    padding: 18px 28px;
-    top: -90px;
+    border-radius: 20px;
+    padding: 15px 25px;
+    top: -70px;
     left: 50%;
     transform: translate(-50%, 0);
-    max-width: 280px;
-    min-width: 220px;
+    max-width: 250px;
+    min-width: 180px;
     opacity: 1;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     animation: bobbing 2.5s infinite;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     backdrop-filter: blur(12px);
     border: 2px solid rgba(255,255,255,0.3);
     z-index: 2;
-    color: #1a1a1a;
+    color: var(--color-primary);
     text-align: center;
     pointer-events: none;
     white-space: nowrap;
@@ -291,10 +304,14 @@ h1 {
     border-bottom: 2px solid rgba(255,255,255,0.3);
 }
 
-/* Rest of the CSS remains the same */
+.speech-bubble.hidden {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+}
+
 @keyframes bobbing {
     0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, -10px); }
+    50% { transform: translate(-50%, -8px); }
 }
 
 .timer-urgent {
@@ -302,9 +319,9 @@ h1 {
 }
 
 @keyframes timerPulse {
-    0% { color: #ff4444; transform: scale(1); }
+    0% { color: var(--color-secondary); transform: scale(1); }
     50% { color: #ff0000; transform: scale(1.15); }
-    100% { color: #ff4444; transform: scale(1); }
+    100% { color: var(--color-secondary); transform: scale(1); }
 }
 
 .game-started {
@@ -330,7 +347,7 @@ h1 {
 
 .version-number {
     position: fixed;
-    bottom: 8px;
+    bottom: calc(8px + var(--safe-area-inset-bottom));
     right: 8px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.7);
@@ -339,106 +356,99 @@ h1 {
     z-index: 1000;
 }
 
-@media (max-height: 800px) {
-    body {
-        padding: 8px;
-    }
-
+/* Mobile Optimizations */
+@media (max-width: 480px) {
     .game-container {
         padding: 15px;
         gap: 10px;
+        border-radius: 20px;
     }
 
     h1 {
-        font-size: 2em;
-        margin-bottom: 10px;
+        font-size: 1.8em;
     }
 
     .instructions {
         padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .instruction-content {
-        gap: 8px;
+        border-radius: 16px;
     }
 
     .instruction-title {
-        font-size: 1.2em;
-        gap: 8px;
-    }
-
-    .instruction-details {
-        gap: 8px;
+        font-size: 1.1em;
     }
 
     .detail-item {
         font-size: 1em;
-        gap: 8px;
     }
 
-    .character-container {
-        width: 200px;
-        height: 200px;
-        margin: 20px auto;
+    .game-stats {
+        gap: 10px;
+    }
+
+    .stat-board {
+        padding: 10px 15px;
+        border-radius: 16px;
+    }
+
+    .stat-value {
+        font-size: 20px;
     }
 
     .speech-bubble {
         font-size: 14px;
         padding: 12px 20px;
-        top: -70px;
-        min-width: 180px;
+        min-width: 150px;
+        top: -60px;
     }
 
     #resetBtn {
-        padding: 12px 25px;
+        padding: 10px 25px;
         font-size: 16px;
-    }
-
-    .timer-board, .score-board {
-        padding: 10px 20px;
-    }
-
-    #timer, #score {
-        font-size: 24px;
     }
 }
 
-@media (max-width: 380px) {
+/* Small Screen Optimizations */
+@media (max-width: 360px) {
     .game-container {
         padding: 12px;
+        gap: 8px;
     }
 
-    .character-container {
-        width: 180px;
-        height: 180px;
-        margin: 15px auto;
+    h1 {
+        font-size: 1.6em;
+    }
+
+    .stat-board {
+        padding: 8px 12px;
+    }
+
+    .stat-value {
+        font-size: 18px;
     }
 
     .speech-bubble {
         font-size: 13px;
-        padding: 10px 18px;
-        top: -60px;
-        min-width: 160px;
+        padding: 10px 15px;
+        min-width: 130px;
     }
 
-    .timer-board, .score-board {
-        padding: 8px 15px;
-        min-width: 100px;
-    }
-
-    #timer, #score {
-        font-size: 20px;
-    }
-
-    .timer-label, .score-label {
-        font-size: 0.8em;
+    #resetBtn {
+        padding: 8px 20px;
+        font-size: 14px;
     }
 }
 
-.expression.hidden {
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    visibility: hidden; /* Added visibility hidden */
+/* Height-based Adjustments */
+@media (max-height: 700px) {
+    .game-container {
+        gap: 8px;
+    }
+
+    .character-container {
+        margin: 10px auto;
+    }
+
+    .speech-bubble {
+        top: -50px;
+    }
 }

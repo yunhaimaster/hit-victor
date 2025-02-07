@@ -3,12 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a2a6c">
     <title>打 Victor</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator &&
+            (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="game-container">
-        <h1>打 Victor!</h1>
+        <div class="game-header">
+            <h1>打 Victor!</h1>
+            <div class="controls">
+                <button id="resetBtn">開始</button>
+            </div>
+        </div>
+
         <div class="instructions">
             <div class="instruction-content">
                 <div class="instruction-title">
@@ -24,26 +46,22 @@
                 </div>
             </div>
         </div>
-        <div class="score-container">
-            <div class="game-stats">
-                <div class="timer-board">
-                    <div class="timer-label">時間</div>
-                    <span id="timer">20</span>
-                </div>
-                <div class="score-board">
-                    <div class="score-label">分數</div>
-                    <span id="score">0</span>
-                </div>
+
+        <div class="game-stats">
+            <div class="stat-board timer-board">
+                <div class="stat-label timer-label">時間</div>
+                <span id="timer" class="stat-value">20</span>
             </div>
-            <div class="high-score-board">
-                <div class="high-score-label">最高分</div>
+            <div class="stat-board score-board">
+                <div class="stat-label score-label">分數</div>
+                <span id="score" class="stat-value">0</span>
+            </div>
+            <div class="stat-board high-score-board">
+                <div class="stat-label high-score-label">最高分</div>
                 <div class="high-score-content">
                     <span id="highScore">0</span>
                     <span id="highScorePlayer">無人</span>
                 </div>
-            </div>
-            <div class="controls">
-                <button id="resetBtn">開始</button>
             </div>
         </div>
         
