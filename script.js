@@ -5,6 +5,13 @@ const speechBubble = document.getElementById('speech-bubble');
 const speechText = speechBubble.querySelector('p');
 const resetBtn = document.getElementById('resetBtn');
 
+// High score configuration
+const HIGH_SCORES_URL = 'https://yunhaimaster.github.io/hit-victor/highscores.json';
+
+// High score state
+let highScore = 0;
+let highScorePlayer = '無人';
+
 // 表情元素
 const expressions = {
     normal: document.querySelector('.expression.normal'),
@@ -85,6 +92,50 @@ const audioPool = {
         this.currentIndex[type] = (this.currentIndex[type] + 1) % this.poolSize;
     }
 };
+
+// High score functions
+async function fetchHighScores() {
+    try {
+        const response = await fetch(HIGH_SCORES_URL);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.highScore > highScore) {
+                highScore = data.highScore;
+                highScorePlayer = data.player;
+                updateHighScoreDisplay();
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching high scores:', error);
+        // Fallback to local storage
+        const localHighScore = localStorage.getItem('highScore');
+        const localPlayer = localStorage.getItem('highScorePlayer');
+        if (localHighScore && parseInt(localHighScore) > highScore) {
+            highScore = parseInt(localHighScore);
+            highScorePlayer = localPlayer || '無人';
+            updateHighScoreDisplay();
+        }
+    }
+}
+
+async function updateHighScore(newScore, playerName) {
+    // Always update local storage as backup
+    localStorage.setItem('highScore', newScore);
+    localStorage.setItem('highScorePlayer', playerName);
+    
+    // Update in-memory values
+    highScore = newScore;
+    highScorePlayer = playerName;
+    updateHighScoreDisplay();
+    
+    // Note: The highscores.json file will be updated through git commits
+    // This ensures the high scores are properly versioned and can be reviewed
+}
+
+function updateHighScoreDisplay() {
+    document.getElementById('highScore').textContent = highScore;
+    document.getElementById('highScorePlayer').textContent = highScorePlayer;
+}
 
 // Replace the loadSounds function
 function loadSounds() {
@@ -178,10 +229,6 @@ let timeLeft = 20;  // 改做20秒
 let timerInterval = null;
 let isGameActive = false;
 
-// 加入最高分變量
-let highScore = localStorage.getItem('highScore') || 0;
-let highScorePlayer = localStorage.getItem('highScorePlayer') || '無人';
-
 // 更新 resetGame 函數
 function resetGame() {
     score = 0;
@@ -236,7 +283,7 @@ function startTimer() {
 }
 
 // 更新 endGame 函數
-function endGame() {
+async function endGame() {
     isGameActive = false;
     clearInterval(timerInterval);
     
@@ -244,12 +291,7 @@ function endGame() {
     if (score > highScore) {
         const playerName = prompt('恭喜破紀錄!請輸入你嘅名:', '');
         if (playerName) {
-            highScore = score;
-            highScorePlayer = playerName;
-            localStorage.setItem('highScore', highScore);
-            localStorage.setItem('highScorePlayer', highScorePlayer);
-            document.getElementById('highScore').textContent = highScore;
-            document.getElementById('highScorePlayer').textContent = highScorePlayer;
+            await updateHighScore(score, playerName);
         }
     }
     
@@ -372,8 +414,10 @@ document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: fal
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // 初始化
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     loadSounds();
+    // Fetch high scores from GitHub
+    await fetchHighScores();
     // 立即顯示第一句挑釁語句
     let initialIndex = Math.floor(Math.random() * taunts.length);
     speechText.textContent = taunts[initialIndex];
@@ -381,8 +425,7 @@ window.addEventListener('load', () => {
     speechBubble.classList.remove('hidden');
     // 設置定時器來更新挑釁語句
     idleTimer = setTimeout(showTaunt, 2000);
-    document.getElementById('highScore').textContent = highScore;
-    document.getElementById('highScorePlayer').textContent = highScorePlayer;
+    updateHighScoreDisplay();
 });
 
 // Add interval to update Victor's state
