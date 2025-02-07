@@ -5,8 +5,8 @@ const speechBubble = document.getElementById('speech-bubble');
 const speechText = speechBubble.querySelector('p');
 const resetBtn = document.getElementById('resetBtn');
 
-// High score configuration
-const HIGH_SCORES_URL = 'https://yunhaimaster.github.io/hit-victor/highscores.json';
+// High score configuration - use raw GitHub content for direct access
+const HIGH_SCORES_URL = 'https://raw.githubusercontent.com/yunhaimaster/hit-victor/gh-pages/highscores.json';
 
 // High score state
 let highScore = 0;
