@@ -1,17 +1,10 @@
 let score = 0;
+let highScore = parseInt(localStorage.getItem('highScore') || '0');
 const scoreElement = document.getElementById('score');
 const victor = document.getElementById('victor');
 const speechBubble = document.getElementById('speech-bubble');
 const speechText = speechBubble.querySelector('p');
 const resetBtn = document.getElementById('resetBtn');
-
-// High score configuration
-const HIGH_SCORES_URL = 'https://yunhaimaster.github.io/hit-victor/highscores.json';
-const LOCAL_STORAGE_KEY = 'hit-victor-scores';
-
-// High score state
-let highScore = 0;
-let highScorePlayer = '無人';
 
 // 表情元素
 const expressions = {
@@ -95,110 +88,22 @@ const audioPool = {
 };
 
 // High score functions
-async function fetchHighScores(showLoadingUI = false) {
-    if (showLoadingUI) {
-        document.getElementById('highScore').textContent = '載入中...';
-        document.getElementById('highScorePlayer').textContent = '';
-    }
-
-    try {
-        const response = await fetch(HIGH_SCORES_URL + '?t=' + Date.now());
-        if (response.ok) {
-            const data = await response.json();
-            if (data.score > highScore) {
-                highScore = data.score;
-                highScorePlayer = data.player;
-                // Update local storage with server data
-                localStorage.setItem('highScore', highScore);
-                localStorage.setItem('highScorePlayer', highScorePlayer);
-                updateHighScoreDisplay();
-            }
-            updateStatusIndicator(true);
-            if (showLoadingUI) {
-                alert(`目前最高分: ${highScore} (${highScorePlayer})`);
-            }
-            return true;
-        } else {
-            throw new Error('Server response not OK');
-        }
-    } catch (error) {
-        console.error('Error fetching high scores:', error);
-        updateStatusIndicator(false);
-        if (showLoadingUI) {
-            alert('無法連接到伺服器。你的分數會保存在本地,並在下次成功連接時更新。');
-        }
-        return false;
-    }
-}
-
-function updateHighScore(newScore, playerName) {
-    // Update local storage
+function updateHighScore(newScore) {
+    // 更新本地儲存
     localStorage.setItem('highScore', newScore);
-    localStorage.setItem('highScorePlayer', playerName);
     
-    // Update in-memory values
+    // 更新記憶體入面嘅值
     highScore = newScore;
-    highScorePlayer = playerName;
     updateHighScoreDisplay();
     
-    // Show message about high score
-    alert(`新記錄!\n分數: ${newScore}\n玩家: ${playerName}\n\n記錄已保存。管理員會定期更新伺服器記錄。`);
-}
-
-// Add sync button and status indicator
-const syncContainer = document.createElement('div');
-syncContainer.className = 'sync-container';
-
-const syncButton = document.createElement('button');
-syncButton.innerHTML = '🔄 同步';
-syncButton.title = '同步最高分';
-syncButton.className = 'sync-button';
-syncButton.onclick = () => {
-    syncButton.disabled = true;
-    syncButton.innerHTML = '⏳ 同步中...';
-    fetchHighScores(true).finally(() => {
-        syncButton.disabled = false;
-        syncButton.innerHTML = '🔄 同步';
-    });
-};
-
-const statusIndicator = document.createElement('span');
-statusIndicator.className = 'status-indicator';
-statusIndicator.title = '離線模式';
-statusIndicator.textContent = '💾';
-
-syncContainer.appendChild(syncButton);
-syncContainer.appendChild(statusIndicator);
-document.querySelector('.high-score-content').insertBefore(syncContainer, document.getElementById('highScorePlayer'));
-
-// Update status indicator
-function updateStatusIndicator(online) {
-    statusIndicator.textContent = online ? '🌐' : '💾';
-    statusIndicator.title = online ? '已連接' : '離線模式';
-    statusIndicator.classList.toggle('offline', !online);
+    // 顯示提示信息
+    alert(`新記錄!\n分數: ${newScore}`);
 }
 
 function updateHighScoreDisplay() {
-    const localScore = parseInt(localStorage.getItem('highScore') || '0');
-    const localPlayer = localStorage.getItem('highScorePlayer') || '無人';
-    const scoreDisplay = document.getElementById('highScore');
-    const playerDisplay = document.getElementById('highScorePlayer');
-    
-    if (localScore > highScore) {
-        // Show both records when they differ
-        scoreDisplay.innerHTML = `${localScore} <span class="record-note">(本地)</span>`;
-        if (highScore > 0) {
-            scoreDisplay.innerHTML += `<br><span class="server-record">${highScore} (伺服器)</span>`;
-        }
-        playerDisplay.innerHTML = `${localPlayer} <span class="review-tag">審核中</span>`;
-        playerDisplay.title = '你的新記錄正在等待管理員審核。審核通過後會更新到伺服器。';
-    } else {
-        scoreDisplay.textContent = highScore;
-        playerDisplay.textContent = highScorePlayer;
-        if (localScore > 0 && localScore < highScore) {
-            playerDisplay.innerHTML += `<br><span class="local-best">你的最佳: ${localScore}</span>`;
-        }
-        playerDisplay.title = '';
+    const highScoreElement = document.getElementById('highScore');
+    if (highScoreElement) {
+        highScoreElement.textContent = highScore;
     }
 }
 
@@ -348,22 +253,19 @@ function startTimer() {
 }
 
 // 更新 endGame 函數
-async function endGame() {
+function endGame() {
     isGameActive = false;
     clearInterval(timerInterval);
     
     // 檢查是否破紀錄
     if (score > highScore) {
-        const playerName = prompt('恭喜破紀錄!請輸入你嘅名:', '');
-        if (playerName) {
-            await updateHighScore(score, playerName);
-        }
+        updateHighScore(score);
     }
     
     // 顯示結果
-    alert(`時間到!\n你嘅分數係:${score}\n最高分:${highScore} (${highScorePlayer})\n平均每秒打中 ${(score/20).toFixed(2)} 下!`);
+    alert(`時間到!\n你嘅分數係:${score}\n最高分:${highScore}\n平均每秒打中 ${(score/20).toFixed(2)} 下!`);
     
-    // 停止所有動畫
+    // 重置狀態
     victor.style.animation = '';
     victor.classList.remove('angry');
     document.querySelector('.character-container').classList.remove('angry');
@@ -441,9 +343,9 @@ function handleHit(event) {
 const container = document.querySelector('.character-container');
 
 // 處理第一次互動
-async function handleFirstInteraction(event) {
+function handleFirstInteraction(event) {
     if (!isAudioInitialized) {
-        await loadSounds();
+        loadSounds();
     }
     handleHit(event);
 }
@@ -479,10 +381,8 @@ document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: fal
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // 初始化
-window.addEventListener('load', async () => {
+window.addEventListener('load', () => {
     loadSounds();
-    // Fetch high scores from GitHub
-    await fetchHighScores();
     // 立即顯示第一句挑釁語句
     let initialIndex = Math.floor(Math.random() * taunts.length);
     speechText.textContent = taunts[initialIndex];
