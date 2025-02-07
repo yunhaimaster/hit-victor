@@ -149,10 +149,11 @@ async function updateHighScore(newScore, playerName) {
 
 // Add sync button to manually sync high scores
 const syncButton = document.createElement('button');
-syncButton.textContent = '同步最高分';
+syncButton.textContent = '🔄';
+syncButton.title = '同步最高分';
 syncButton.className = 'sync-button';
 syncButton.onclick = () => fetchHighScores(true);
-document.querySelector('.high-score-board').appendChild(syncButton);
+document.querySelector('.high-score-content').insertBefore(syncButton, document.getElementById('highScorePlayer'));
 
 function updateHighScoreDisplay() {
     document.getElementById('highScore').textContent = highScore;
