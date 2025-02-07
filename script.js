@@ -181,17 +181,24 @@ function updateStatusIndicator(online) {
 function updateHighScoreDisplay() {
     const localScore = parseInt(localStorage.getItem('highScore') || '0');
     const localPlayer = localStorage.getItem('highScorePlayer') || '無人';
+    const scoreDisplay = document.getElementById('highScore');
+    const playerDisplay = document.getElementById('highScorePlayer');
     
-    // Show local record if it's higher than server record
     if (localScore > highScore) {
-        document.getElementById('highScore').textContent = localScore;
-        document.getElementById('highScorePlayer').innerHTML = `${localPlayer} <span class="local-tag">(本地)</span>`;
-        // Add tooltip to explain
-        document.getElementById('highScorePlayer').title = '這是本地記錄。等待管理員審核並同步到伺服器。';
+        // Show both records when they differ
+        scoreDisplay.innerHTML = `${localScore} <span class="record-note">(本地)</span>`;
+        if (highScore > 0) {
+            scoreDisplay.innerHTML += `<br><span class="server-record">${highScore} (伺服器)</span>`;
+        }
+        playerDisplay.innerHTML = `${localPlayer} <span class="review-tag">審核中</span>`;
+        playerDisplay.title = '你的新記錄正在等待管理員審核。審核通過後會更新到伺服器。';
     } else {
-        document.getElementById('highScore').textContent = highScore;
-        document.getElementById('highScorePlayer').innerHTML = highScorePlayer;
-        document.getElementById('highScorePlayer').title = '';
+        scoreDisplay.textContent = highScore;
+        playerDisplay.textContent = highScorePlayer;
+        if (localScore > 0 && localScore < highScore) {
+            playerDisplay.innerHTML += `<br><span class="local-best">你的最佳: ${localScore}</span>`;
+        }
+        playerDisplay.title = '';
     }
 }
 
