@@ -350,33 +350,37 @@ h1 {
 }
 
 .sync-button {
-    background: none;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     border: none;
-    color: #88ff88;
-    font-size: 20px;
+    color: white;
+    font-size: 16px;
     cursor: pointer;
-    padding: 0 5px;
-    margin: 0 2px;
+    padding: 4px 8px;
+    margin: 0 5px;
+    border-radius: 12px;
     transition: all 0.3s ease;
-    text-shadow: 0 0 10px rgba(136,255,136,0.3);
-    line-height: 1;
-    vertical-align: middle;
+    box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sync-button:hover {
-    transform: rotate(180deg);
-    color: #aaffaa;
-    text-shadow: 0 0 15px rgba(136,255,136,0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+    background: linear-gradient(135deg, #45a049 0%, #388e3c 100%);
 }
 
 .sync-button:active {
-    transform: rotate(180deg) scale(0.9);
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(76, 175, 80, 0.3);
 }
 
 /* Mobile Optimizations for sync button */
 @media (max-width: 480px) {
     .sync-button {
-        font-size: 18px;
+        font-size: 14px;
+        padding: 3px 6px;
     }
 }
 
