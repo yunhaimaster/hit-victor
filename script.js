@@ -94,16 +94,28 @@ const audioPool = {
 };
 
 // High score functions
-async function fetchHighScores() {
+async function fetchHighScores(showLoadingUI = false) {
+    if (showLoadingUI) {
+        document.getElementById('highScore').textContent = '載入中...';
+        document.getElementById('highScorePlayer').textContent = '';
+    }
+
     try {
-        const response = await fetch(HIGH_SCORES_URL);
+        const response = await fetch(HIGH_SCORES_URL + '?t=' + new Date().getTime());
         if (response.ok) {
             const data = await response.json();
             if (data.highScore > highScore) {
                 highScore = data.highScore;
                 highScorePlayer = data.player;
                 updateHighScoreDisplay();
+                if (showLoadingUI) {
+                    alert('成功同步最高分!\n目前最高分: ' + highScore + ' (' + highScorePlayer + ')');
+                }
+            } else if (showLoadingUI) {
+                alert('已是最新記錄');
             }
+        } else {
+            throw new Error('Server response not OK');
         }
     } catch (error) {
         console.error('Error fetching high scores:', error);
@@ -114,6 +126,9 @@ async function fetchHighScores() {
             highScore = parseInt(localHighScore);
             highScorePlayer = localPlayer || '無人';
             updateHighScoreDisplay();
+        }
+        if (showLoadingUI) {
+            alert('無法同步最高分,請檢查網絡連接\n目前顯示本地記錄');
         }
     }
 }
@@ -128,9 +143,16 @@ async function updateHighScore(newScore, playerName) {
     highScorePlayer = playerName;
     updateHighScoreDisplay();
     
-    // Note: The highscores.json file will be updated through git commits
-    // This ensures the high scores are properly versioned and can be reviewed
+    // Show message about high score submission
+    alert(`新記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}\n\n記錄將在下次更新時同步到伺服器。`);
 }
+
+// Add sync button to manually sync high scores
+const syncButton = document.createElement('button');
+syncButton.textContent = '同步最高分';
+syncButton.className = 'sync-button';
+syncButton.onclick = () => fetchHighScores(true);
+document.querySelector('.high-score-board').appendChild(syncButton);
 
 function updateHighScoreDisplay() {
     document.getElementById('highScore').textContent = highScore;

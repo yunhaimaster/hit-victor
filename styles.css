@@ -345,6 +345,38 @@ h1 {
     100% { transform: scale(1); }
 }
 
+.sync-button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.sync-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+}
+
+.sync-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(74, 144, 226, 0.2);
+}
+
+/* Mobile Optimizations for sync button */
+@media (max-width: 480px) {
+    .sync-button {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
 .version-number {
     position: fixed;
     bottom: calc(8px + var(--safe-area-inset-bottom));
