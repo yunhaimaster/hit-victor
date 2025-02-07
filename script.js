@@ -5,8 +5,8 @@ const speechBubble = document.getElementById('speech-bubble');
 const speechText = speechBubble.querySelector('p');
 const resetBtn = document.getElementById('resetBtn');
 
-// High score configuration - use raw GitHub content for direct access
-const HIGH_SCORES_URL = 'https://raw.githubusercontent.com/yunhaimaster/hit-victor/gh-pages/highscores.json';
+// High score configuration
+const HIGH_SCORES_URL = 'https://hit-victor-default-rtdb.asia-southeast1.firebasedatabase.app/highscores.json';
 
 // High score state
 let highScore = 0;
@@ -101,11 +101,11 @@ async function fetchHighScores(showLoadingUI = false) {
     }
 
     try {
-        const response = await fetch(HIGH_SCORES_URL + '?t=' + new Date().getTime());
+        const response = await fetch(HIGH_SCORES_URL);
         if (response.ok) {
             const data = await response.json();
-            if (data.highScore > highScore) {
-                highScore = data.highScore;
+            if (data && data.score > highScore) {
+                highScore = data.score;
                 highScorePlayer = data.player;
                 updateHighScoreDisplay();
                 if (showLoadingUI) {
@@ -143,8 +143,36 @@ async function updateHighScore(newScore, playerName) {
     highScorePlayer = playerName;
     updateHighScoreDisplay();
     
-    // Show message about high score submission
-    alert(`新記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}\n\n記錄將在下次更新時同步到伺服器。`);
+    try {
+        // Only update if it's a new high score
+        const response = await fetch(HIGH_SCORES_URL);
+        const currentData = await response.json();
+        
+        if (!currentData || newScore > currentData.score) {
+            const updateResponse = await fetch(HIGH_SCORES_URL, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    score: newScore,
+                    player: playerName,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (updateResponse.ok) {
+                alert(`新記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}`);
+            } else {
+                throw new Error('Failed to update server');
+            }
+        } else {
+            alert(`記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}`);
+        }
+    } catch (error) {
+        console.error('Error updating high score:', error);
+        alert(`新記錄已保存到本地!\n分數: ${newScore}\n玩家: ${playerName}\n\n注意: 無法同步到伺服器,請檢查網絡連接。`);
+    }
 }
 
 // Add sync button to manually sync high scores

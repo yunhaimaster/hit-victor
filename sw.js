@@ -1,5 +1,5 @@
 const CACHE_NAME = 'hit-victor-v1';
-const GITHUB_API_CACHE = 'github-api-v1';
+const FIREBASE_CACHE = 'firebase-api-v1';
 const urlsToCache = [
     './',
     './index.html',
@@ -16,27 +16,29 @@ const urlsToCache = [
 // High scores cache duration (5 minutes)
 const HIGH_SCORES_CACHE_DURATION = 5 * 60 * 1000;
 
-// Function to handle GitHub API requests
-async function handleGitHubApiRequest(request) {
+// Function to handle Firebase API requests
+async function handleFirebaseRequest(request) {
     try {
-        // Try network first
+        // Always try network first for Firebase
         const response = await fetch(request);
         
-        // Clone the response before caching
-        const responseToCache = response.clone();
-        
-        // Open cache and store response
-        const cache = await caches.open(GITHUB_API_CACHE);
-        cache.put(request, responseToCache);
+        // Only cache GET requests
+        if (request.method === 'GET') {
+            const responseToCache = response.clone();
+            const cache = await caches.open(FIREBASE_CACHE);
+            cache.put(request, responseToCache);
+        }
         
         return response;
     } catch (error) {
-        // If network fails, try cache
-        const cache = await caches.open(GITHUB_API_CACHE);
-        const cachedResponse = await cache.match(request);
-        
-        if (cachedResponse) {
-            return cachedResponse;
+        // For GET requests, try cache if network fails
+        if (request.method === 'GET') {
+            const cache = await caches.open(FIREBASE_CACHE);
+            const cachedResponse = await cache.match(request);
+            
+            if (cachedResponse) {
+                return cachedResponse;
+            }
         }
         
         throw error;
@@ -61,40 +63,9 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
-    // Handle high scores requests with time-based cache
-    if (url.pathname.endsWith('highscores.json')) {
-        event.respondWith(
-            caches.match(event.request).then(async response => {
-                // Check if we have a cached response
-                if (response) {
-                    const cachedDate = new Date(response.headers.get('date'));
-                    const now = new Date();
-                    
-                    // If cache is fresh (less than 5 minutes old), use it
-                    if (now - cachedDate < HIGH_SCORES_CACHE_DURATION) {
-                        return response;
-                    }
-                }
-                
-                // Cache is stale or doesn't exist, fetch new data
-                try {
-                    const fetchResponse = await fetch(event.request);
-                    const responseToCache = fetchResponse.clone();
-                    
-                    // Store the new response in cache
-                    const cache = await caches.open(CACHE_NAME);
-                    await cache.put(event.request, responseToCache);
-                    
-                    return fetchResponse;
-                } catch (error) {
-                    // If fetch fails and we have a cached version, return it
-                    if (response) {
-                        return response;
-                    }
-                    throw error;
-                }
-            })
-        );
+    // Handle Firebase requests
+    if (url.hostname.includes('firebasedatabase.app')) {
+        event.respondWith(handleFirebaseRequest(event.request));
         return;
     }
     
