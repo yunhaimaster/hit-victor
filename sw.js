@@ -1,5 +1,5 @@
 const CACHE_NAME = 'hit-victor-v1';
-const FIREBASE_CACHE = 'firebase-api-v1';
+const SCORES_CACHE = 'scores-v1';
 const urlsToCache = [
     './',
     './index.html',
@@ -16,31 +16,25 @@ const urlsToCache = [
 // High scores cache duration (5 minutes)
 const HIGH_SCORES_CACHE_DURATION = 5 * 60 * 1000;
 
-// Function to handle Firebase API requests
-async function handleFirebaseRequest(request) {
+// Function to handle high scores requests
+async function handleScoresRequest(request) {
     try {
-        // Always try network first for Firebase
+        // Always try network first
         const response = await fetch(request);
-        
-        // Only cache GET requests
-        if (request.method === 'GET') {
+        if (response.ok) {
             const responseToCache = response.clone();
-            const cache = await caches.open(FIREBASE_CACHE);
-            cache.put(request, responseToCache);
+            const cache = await caches.open(SCORES_CACHE);
+            await cache.put(request, responseToCache);
+            return response;
         }
-        
-        return response;
+        throw new Error('Network response was not ok');
     } catch (error) {
-        // For GET requests, try cache if network fails
-        if (request.method === 'GET') {
-            const cache = await caches.open(FIREBASE_CACHE);
-            const cachedResponse = await cache.match(request);
-            
-            if (cachedResponse) {
-                return cachedResponse;
-            }
+        // If network fails, try cache
+        const cache = await caches.open(SCORES_CACHE);
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse) {
+            return cachedResponse;
         }
-        
         throw error;
     }
 }
@@ -63,9 +57,9 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
-    // Handle Firebase requests
-    if (url.hostname.includes('firebasedatabase.app')) {
-        event.respondWith(handleFirebaseRequest(event.request));
+    // Handle high scores requests
+    if (url.pathname.endsWith('highscores.json')) {
+        event.respondWith(handleScoresRequest(event.request));
         return;
     }
     

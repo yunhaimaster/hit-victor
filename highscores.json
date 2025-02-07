@@ -1,5 +1,6 @@
 {
-    "highScore": 0,
+    "score": 0,
     "player": "無人",
-    "lastUpdated": "2024-02-07T00:00:00Z"
+    "timestamp": "2024-02-07T00:00:00Z",
+    "message": "這個檔案用來儲存最高分記錄。管理員會定期審核並更新記錄。"
 }

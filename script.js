@@ -6,7 +6,8 @@ const speechText = speechBubble.querySelector('p');
 const resetBtn = document.getElementById('resetBtn');
 
 // High score configuration
-const HIGH_SCORES_URL = 'https://hit-victor-default-rtdb.asia-southeast1.firebasedatabase.app/highscores.json';
+const HIGH_SCORES_URL = 'https://yunhaimaster.github.io/hit-victor/highscores.json';
+const LOCAL_STORAGE_KEY = 'hit-victor-scores';
 
 // High score state
 let highScore = 0;
@@ -101,32 +102,43 @@ async function fetchHighScores(showLoadingUI = false) {
     }
 
     try {
-        const response = await fetch(HIGH_SCORES_URL);
+        // Try to get online scores first
+        const response = await fetch(HIGH_SCORES_URL + '?t=' + Date.now());
         if (response.ok) {
             const data = await response.json();
-            if (data && data.score > highScore) {
-                highScore = data.score;
-                highScorePlayer = data.player;
-                updateHighScoreDisplay();
-                if (showLoadingUI) {
-                    alert('成功同步最高分!\n目前最高分: ' + highScore + ' (' + highScorePlayer + ')');
-                }
-            } else if (showLoadingUI) {
-                alert('已是最新記錄');
+            const onlineScore = parseInt(data.score);
+            const onlinePlayer = data.player;
+
+            // Get local scores
+            const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{"score":0,"player":"無人"}');
+            const localScore = parseInt(localData.score);
+
+            // Use the highest score between online and local
+            if (onlineScore >= localScore) {
+                highScore = onlineScore;
+                highScorePlayer = onlinePlayer;
+                // Update local storage with online data
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            } else {
+                highScore = localScore;
+                highScorePlayer = localData.player;
+            }
+
+            updateHighScoreDisplay();
+            if (showLoadingUI) {
+                alert('成功同步最高分!\n目前最高分: ' + highScore + ' (' + highScorePlayer + ')');
             }
         } else {
             throw new Error('Server response not OK');
         }
     } catch (error) {
         console.error('Error fetching high scores:', error);
-        // Fallback to local storage
-        const localHighScore = localStorage.getItem('highScore');
-        const localPlayer = localStorage.getItem('highScorePlayer');
-        if (localHighScore && parseInt(localHighScore) > highScore) {
-            highScore = parseInt(localHighScore);
-            highScorePlayer = localPlayer || '無人';
-            updateHighScoreDisplay();
-        }
+        // Use local storage
+        const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{"score":0,"player":"無人"}');
+        highScore = parseInt(localData.score);
+        highScorePlayer = localData.player;
+        updateHighScoreDisplay();
+        
         if (showLoadingUI) {
             alert('無法同步最高分,請檢查網絡連接\n目前顯示本地記錄');
         }
@@ -134,45 +146,22 @@ async function fetchHighScores(showLoadingUI = false) {
 }
 
 async function updateHighScore(newScore, playerName) {
-    // Always update local storage as backup
-    localStorage.setItem('highScore', newScore);
-    localStorage.setItem('highScorePlayer', playerName);
+    const scoreData = {
+        score: newScore,
+        player: playerName,
+        timestamp: new Date().toISOString()
+    };
+
+    // Always update local storage
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(scoreData));
     
     // Update in-memory values
     highScore = newScore;
     highScorePlayer = playerName;
     updateHighScoreDisplay();
     
-    try {
-        // Only update if it's a new high score
-        const response = await fetch(HIGH_SCORES_URL);
-        const currentData = await response.json();
-        
-        if (!currentData || newScore > currentData.score) {
-            const updateResponse = await fetch(HIGH_SCORES_URL, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    score: newScore,
-                    player: playerName,
-                    timestamp: new Date().toISOString()
-                })
-            });
-
-            if (updateResponse.ok) {
-                alert(`新記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}`);
-            } else {
-                throw new Error('Failed to update server');
-            }
-        } else {
-            alert(`記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}`);
-        }
-    } catch (error) {
-        console.error('Error updating high score:', error);
-        alert(`新記錄已保存到本地!\n分數: ${newScore}\n玩家: ${playerName}\n\n注意: 無法同步到伺服器,請檢查網絡連接。`);
-    }
+    // Show message about high score submission
+    alert(`新記錄已保存!\n分數: ${newScore}\n玩家: ${playerName}\n\n記錄已保存在本地。請等待管理員審核並更新伺服器記錄。`);
 }
 
 // Add sync button to manually sync high scores
