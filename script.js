@@ -113,17 +113,21 @@ async function fetchHighScores(showLoadingUI = false) {
                 localStorage.setItem('highScorePlayer', highScorePlayer);
                 updateHighScoreDisplay();
             }
+            updateStatusIndicator(true);
             if (showLoadingUI) {
                 alert(`目前最高分: ${highScore} (${highScorePlayer})`);
             }
+            return true;
         } else {
             throw new Error('Server response not OK');
         }
     } catch (error) {
         console.error('Error fetching high scores:', error);
+        updateStatusIndicator(false);
         if (showLoadingUI) {
             alert('無法連接到伺服器。你的分數會保存在本地,並在下次成功連接時更新。');
         }
+        return false;
     }
 }
 
@@ -141,13 +145,38 @@ function updateHighScore(newScore, playerName) {
     alert(`新記錄!\n分數: ${newScore}\n玩家: ${playerName}\n\n記錄已保存。管理員會定期更新伺服器記錄。`);
 }
 
-// Add sync button to manually sync high scores
+// Add sync button and status indicator
+const syncContainer = document.createElement('div');
+syncContainer.className = 'sync-container';
+
 const syncButton = document.createElement('button');
-syncButton.textContent = '🔄';
+syncButton.innerHTML = '🔄 同步';
 syncButton.title = '同步最高分';
 syncButton.className = 'sync-button';
-syncButton.onclick = () => fetchHighScores(true);
-document.querySelector('.high-score-content').insertBefore(syncButton, document.getElementById('highScorePlayer'));
+syncButton.onclick = () => {
+    syncButton.disabled = true;
+    syncButton.innerHTML = '⏳ 同步中...';
+    fetchHighScores(true).finally(() => {
+        syncButton.disabled = false;
+        syncButton.innerHTML = '🔄 同步';
+    });
+};
+
+const statusIndicator = document.createElement('span');
+statusIndicator.className = 'status-indicator';
+statusIndicator.title = '離線模式';
+statusIndicator.textContent = '💾';
+
+syncContainer.appendChild(syncButton);
+syncContainer.appendChild(statusIndicator);
+document.querySelector('.high-score-content').insertBefore(syncContainer, document.getElementById('highScorePlayer'));
+
+// Update status indicator
+function updateStatusIndicator(online) {
+    statusIndicator.textContent = online ? '🌐' : '💾';
+    statusIndicator.title = online ? '已連接' : '離線模式';
+    statusIndicator.classList.toggle('offline', !online);
+}
 
 function updateHighScoreDisplay() {
     document.getElementById('highScore').textContent = highScore;
