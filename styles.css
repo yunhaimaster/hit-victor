@@ -468,14 +468,39 @@ h1 {
     50% { background-color: rgba(255, 0, 0, 0.2); }
 }
 
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.timer-board, .score-board {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 15px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.high-score-board {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 15px;
+    margin: 10px auto;
+    text-align: center;
+    max-width: 200px;
+}
+
 .controls {
+    text-align: center;
     margin: 10px 0;
 }
 
 #resetBtn {
     background: #ff4444;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 30px;
     border: none;
     border-radius: 25px;
     font-size: 18px;
