@@ -39,92 +39,66 @@ let lastTauntIndex = -1;
 let currentExpression = 'normal';
 let idleTimer = null;
 
-// 音效池
+// Create an audio pool for better sound management
 const audioPool = {
-    ouch: [],
-    pain: []
-};
-
-// 音效初始化狀態
-let isAudioInitialized = false;
-
-// 預加載音效
-function loadSounds() {
-    try {
-        // 創建音效池
-        for (let i = 0; i < 3; i++) {
+    sounds: {
+        ouch: [],
+        pain: []
+    },
+    currentIndex: {
+        ouch: 0,
+        pain: 0
+    },
+    poolSize: 3,
+    
+    initialize() {
+        // Create multiple audio objects for each sound type
+        for (let i = 0; i < this.poolSize; i++) {
             const ouchSound = new Audio('sounds/哎也.mp3');
             const painSound = new Audio('sounds/好痛.mp3');
             
-            ouchSound.volume = 1.0;
-            painSound.volume = 1.0;
+            ouchSound.preload = 'auto';
+            painSound.preload = 'auto';
             
-            // 預加載
-            ouchSound.load();
-            painSound.load();
-            
-            // 加入音效池
-            audioPool.ouch.push(ouchSound);
-            audioPool.pain.push(painSound);
-            
-            // 監聽加載完成
-            ouchSound.addEventListener('canplaythrough', () => {
-                sounds.isLoaded.ouch = true;
-                console.log('Ouch sound loaded successfully');
-            }, { once: true });
-            
-            painSound.addEventListener('canplaythrough', () => {
-                sounds.isLoaded.pain = true;
-                console.log('Pain sound loaded successfully');
-            }, { once: true });
+            this.sounds.ouch.push(ouchSound);
+            this.sounds.pain.push(painSound);
         }
+    },
+    
+    play(isAngry = false) {
+        const type = Math.random() < 0.5 ? 'ouch' : 'pain';
+        const audio = this.sounds[type][this.currentIndex[type]];
+        
+        // Reset and configure audio
+        audio.currentTime = 0;
+        audio.volume = isAngry ? 1.5 : 1.0;
+        audio.playbackRate = isAngry ? 0.8 : 1.0;
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Audio play error:", error);
+            });
+        }
+        
+        // Move to next audio object in pool
+        this.currentIndex[type] = (this.currentIndex[type] + 1) % this.poolSize;
+    }
+};
+
+// Replace the loadSounds function
+function loadSounds() {
+    try {
+        audioPool.initialize();
+        isAudioInitialized = true;
+        console.log('Sounds loaded successfully');
     } catch (e) {
         console.log('Audio not supported:', e);
     }
 }
 
-// 初始化音效
-async function initSounds() {
-    if (isAudioInitialized) return;
-    
-    try {
-        // 靜音播放所有音效以解鎖
-        const promises = [...audioPool.ouch, ...audioPool.pain].map(audio => {
-            audio.volume = 0;
-            return audio.play().catch(() => {});
-        });
-        
-        await Promise.all(promises);
-        
-        // 恢復音量
-        audioPool.ouch.forEach(audio => audio.volume = 1.0);
-        audioPool.pain.forEach(audio => audio.volume = 1.0);
-        
-        isAudioInitialized = true;
-    } catch (e) {
-        console.log('Sound initialization error:', e);
-    }
-}
-
-// 從音效池獲取可用的音效
-function getAvailableAudio(type) {
-    return audioPool[type].find(audio => audio.paused || audio.ended);
-}
-
-// 播放隨機音效
-function playRandomSound(isAngry = false) {
-    if (!isAudioInitialized) return;
-    
-    const type = Math.random() < 0.5 ? 'ouch' : 'pain';
-    const audio = getAvailableAudio(type);
-    
-    if (audio) {
-        audio.currentTime = 0;
-        audio.volume = isAngry ? 1.5 : 1.0;
-        audio.playbackRate = isAngry ? 0.8 : 1.0;
-        audio.play().catch(error => console.log('Sound play error:', error));
-    }
-}
+// 音效初始化狀態
+let isAudioInitialized = false;
 
 // 切換表情
 function changeExpression(newExpression) {
@@ -169,7 +143,7 @@ function resetIdleTimer() {
 }
 
 // 點擊事件處理
-async function handleHit(event) {
+function handleHit(event) {
     event.preventDefault();
     
     // 獲取點擊或觸摸位置
@@ -228,7 +202,9 @@ async function handleHit(event) {
     hitsLeft.textContent = hitsToAngry;
     
     // 播放音效
-    playRandomSound();
+    if (isAudioInitialized) {
+        audioPool.play(score % 10 === 0); // Pass true if in angry mode
+    }
     
     // 添加打擊動畫
     victor.classList.remove('hit');
@@ -244,7 +220,7 @@ async function handleHit(event) {
         speechBubble.classList.add('hidden');
         
         // 播放特殊音效
-        playRandomSound(true);
+        audioPool.play(true);
     } else if (score % 10 === 1) {
         // 恢復正常
         changeExpression('normal');
@@ -289,7 +265,7 @@ const container = document.querySelector('.character-container');
 // 處理第一次互動
 async function handleFirstInteraction(event) {
     if (!isAudioInitialized) {
-        await initSounds();
+        await loadSounds();
     }
     handleHit(event);
 }
