@@ -103,93 +103,95 @@ const audioPool = {
     }
 };
 
-// High score functions
-async function updateHighScore(newScore) {
+// 新增排行榜相關變量
+const nameInputModal = document.getElementById('nameInputModal');
+const playerNameInput = document.getElementById('playerNameInput');
+const submitNameBtn = document.getElementById('submitNameBtn');
+const leaderboardList = document.getElementById('leaderboardList');
+
+// 更新分數處理函數
+async function updateScore(newScore) {
     try {
-        // 更新本地儲存
-        localStorage.setItem('highScore', newScore);
+        // 獲取當前排行榜
+        const leaderboardRef = doc(db, 'leaderboard', 'global');
+        const docSnap = await getDoc(leaderboardRef);
         
-        // 更新記憶體入面嘅值
-        highScore = newScore;
-        updateHighScoreDisplay();
-        
-        // 更新 Firebase
-        const highScoreRef = doc(db, 'highscores', 'global');
-        const docSnap = await getDoc(highScoreRef);
-        
+        let scores = [];
         if (docSnap.exists()) {
-            const currentHighScore = docSnap.data().score;
-            if (newScore > currentHighScore) {
-                await setDoc(highScoreRef, {
-                    score: newScore,
-                    updatedAt: new Date()
-                }, { merge: true });
-            }
-        } else {
-            await setDoc(highScoreRef, {
-                score: newScore,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            });
+            scores = docSnap.data().scores || [];
         }
         
-        // 顯示提示信息
-        alert(`新記錄!\n分數: ${newScore}`);
+        // 檢查是否能進入排行榜（前5名）
+        const isTopScore = scores.length < 5 || newScore > (scores[scores.length - 1]?.score || 0);
+        
+        if (isTopScore) {
+            // 顯示名字輸入對話框
+            nameInputModal.classList.remove('hidden');
+            
+            // 處理提交名字
+            const handleSubmit = async () => {
+                const playerName = playerNameInput.value.trim() || '無名英雄';
+                
+                // 添加新分數
+                scores.push({
+                    name: playerName,
+                    score: newScore,
+                    timestamp: new Date()
+                });
+                
+                // 排序並只保留前5名
+                scores.sort((a, b) => b.score - a.score);
+                scores = scores.slice(0, 5);
+                
+                // 更新 Firebase
+                await setDoc(leaderboardRef, {
+                    scores: scores,
+                    updatedAt: new Date()
+                });
+                
+                // 隱藏對話框
+                nameInputModal.classList.add('hidden');
+                
+                // 清除輸入框
+                playerNameInput.value = '';
+                
+                // 移除事件監聽
+                submitNameBtn.removeEventListener('click', handleSubmit);
+            };
+            
+            // 添加提交按鈕事件監聽
+            submitNameBtn.addEventListener('click', handleSubmit);
+        }
     } catch (error) {
-        console.error('Error updating high score:', error);
-        // 如果 Firebase 更新失敗，至少本地記錄還在
+        console.error('Error updating score:', error);
     }
 }
 
-async function loadHighScore() {
+// 初始化排行榜
+async function initializeLeaderboard() {
     try {
-        // 先讀取本地儲存的分數
-        const localHighScore = parseInt(localStorage.getItem('highScore') || '0');
-        
-        // 立即更新顯示本地分數
-        highScore = localHighScore;
-        updateHighScoreDisplay();
-        
-        // 再嘗試從 Firebase 讀取
-        const highScoreRef = doc(db, 'highscores', 'global');
-        const docSnap = await getDoc(highScoreRef);
-        
-        if (docSnap.exists()) {
-            const globalHighScore = docSnap.data().score;
-            // 使用較高的分數
-            if (globalHighScore > highScore) {
-                highScore = globalHighScore;
-                // 更新本地儲存和顯示
-                localStorage.setItem('highScore', highScore);
-                updateHighScoreDisplay();
-            }
-        } else if (localHighScore > 0) {
-            // 如果 Firebase 中沒有記錄，創建一個
-            await setDoc(highScoreRef, {
-                score: localHighScore,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            });
-        }
-        
-        // 添加實時監聽，以獲取其他玩家的新高分
-        onSnapshot(highScoreRef, (docSnap) => {
+        // 讀取並監聽排行榜
+        const leaderboardRef = doc(db, 'leaderboard', 'global');
+        onSnapshot(leaderboardRef, (docSnap) => {
             if (docSnap.exists()) {
-                const globalHighScore = docSnap.data().score;
-                if (globalHighScore > highScore) {
-                    highScore = globalHighScore;
-                    localStorage.setItem('highScore', highScore);
-                    updateHighScoreDisplay();
-                }
+                const scores = docSnap.data().scores || [];
+                updateLeaderboardDisplay(scores);
             }
         });
-        
     } catch (error) {
-        console.error('Error loading high score:', error);
-        // 如果讀取失敗，使用本地分數
-        highScore = parseInt(localStorage.getItem('highScore') || '0');
-        updateHighScoreDisplay();
+        console.error('Error loading leaderboard:', error);
     }
+}
+
+// 新增排行榜顯示函數
+function updateLeaderboardDisplay(scores) {
+    leaderboardList.innerHTML = scores.map((score, index) => `
+        <div class="leaderboard-item">
+            <span class="leaderboard-rank">${index + 1}</span>
+            <span class="leaderboard-name">${score.name}</span>
+            <span class="leaderboard-score">${score.score}</span>
+        </div>
+    `).join('');
 }
 
 function updateHighScoreDisplay() {
@@ -365,10 +367,8 @@ function endGame() {
     // 更新按鈕文字
     resetBtn.textContent = '開始';
     
-    // 檢查是否破紀錄
-    if (score > highScore) {
-        updateHighScore(score);
-    }
+    // 檢查是否可以進入排行榜
+    updateScore(score);
     
     // Keep speech bubble visible but change to a taunt
     showTaunt();
@@ -478,8 +478,8 @@ window.addEventListener('load', () => {
     // 確保語句泡泡可見並顯示第一句挑釁語句
     speechBubble.classList.remove('hidden');
     showTaunt();
-    // 立即加載最高分
-    loadHighScore();
+    // 初始化排行榜
+    initializeLeaderboard();
 });
 
 // Add interval to update Victor's state

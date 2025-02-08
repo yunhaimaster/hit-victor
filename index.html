@@ -84,12 +84,28 @@
                 <div class="stat-label score-label">分數</div>
                 <span id="score" class="stat-value">0</span>
             </div>
-            <div class="stat-board high-score-board">
-                <div class="stat-label high-score-label">最高分</div>
-                <span id="highScore" class="stat-value">0</span>
+        </div>
+        
+        <!-- 新增排行榜面板 -->
+        <div class="wooden-panel leaderboard-panel">
+            <div class="leaderboard-title">
+                <span class="icon">👑</span> 排行榜
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- 排行榜項目會動態插入這裡 -->
             </div>
         </div>
         
+        <!-- 新增名字輸入對話框 -->
+        <div id="nameInputModal" class="modal hidden">
+            <div class="modal-content wooden-panel">
+                <h2>恭喜你進入排行榜！</h2>
+                <p>請輸入你的名字：</p>
+                <input type="text" id="playerNameInput" maxlength="10" placeholder="最多10個字" class="wooden-input">
+                <button id="submitNameBtn" class="wooden-button">確定</button>
+            </div>
+        </div>
+
         <div class="character-container">
             <div id="speech-bubble" class="speech-bubble">
                 <p>打我呀,哈哈!</p>
