@@ -25,6 +25,8 @@ const firebaseConfig = {
 };
 
 let db;
+let useLocalStorage = false;
+
 try {
     // 初始化 Firebase
     if (!firebase.apps.length) {
@@ -35,6 +37,7 @@ try {
     updateLoadingProgress();
 } catch (error) {
     console.error('Firebase initialization error:', error);
+    useLocalStorage = true;
     resourceStatus.firebase.loaded = 1;
     updateLoadingProgress();
 }
@@ -220,13 +223,28 @@ const leaderboardList = document.getElementById('leaderboardList');
 
 // 更新分數處理函數
 async function updateScore(newScore) {
-    if (!db) {
-        console.warn('Firebase not initialized, skipping score update');
+    // 如果 Firebase 不可用，使用本地存儲
+    if (useLocalStorage || !db) {
+        const localScores = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+        const playerName = prompt('恭喜你進入排行榜！請輸入你的名字：') || '無名英雄';
+        
+        localScores.push({
+            name: playerName,
+            score: newScore,
+            timestamp: new Date().toISOString()
+        });
+        
+        // 排序並只保留前3名
+        localScores.sort((a, b) => b.score - a.score);
+        const topScores = localScores.slice(0, 3);
+        
+        localStorage.setItem('leaderboard', JSON.stringify(topScores));
+        updateLeaderboardDisplay(topScores);
         return;
     }
 
     try {
-        // 獲取當前排行榜
+        // Firebase 邏輯保持不變
         const leaderboardRef = db.collection('leaderboard').doc('global');
         const docSnap = await leaderboardRef.get();
         
@@ -265,6 +283,8 @@ async function updateScore(newScore) {
                     });
                 } catch (error) {
                     console.error('Error updating leaderboard:', error);
+                    // 如果 Firebase 更新失敗，使用本地存儲
+                    localStorage.setItem('leaderboard', JSON.stringify(scores));
                 }
                 
                 // 隱藏對話框
@@ -282,18 +302,23 @@ async function updateScore(newScore) {
         }
     } catch (error) {
         console.error('Error updating score:', error);
+        // 如果出錯，切換到本地存儲模式
+        useLocalStorage = true;
+        updateScore(newScore);
     }
 }
 
 // 初始化排行榜
 async function initializeLeaderboard() {
-    if (!db) {
-        console.warn('Firebase not initialized, skipping leaderboard');
+    // 如果使用本地存儲模式
+    if (useLocalStorage || !db) {
+        const localScores = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+        updateLeaderboardDisplay(localScores);
         return;
     }
 
     try {
-        // 讀取並監聽排行榜
+        // Firebase 邏輯保持不變
         const leaderboardRef = db.collection('leaderboard').doc('global');
         leaderboardRef.onSnapshot((docSnap) => {
             if (docSnap.exists) {
@@ -302,18 +327,17 @@ async function initializeLeaderboard() {
             }
         }, (error) => {
             console.error('Error loading leaderboard:', error);
-            // 在排行榜顯示錯誤信息
-            const leaderboardList = document.getElementById('leaderboardList');
-            if (leaderboardList) {
-                leaderboardList.innerHTML = `
-                    <div class="leaderboard-item">
-                        <span class="leaderboard-name">排行榜暫時未能載入</span>
-                    </div>
-                `;
-            }
+            // 如果出錯，切換到本地存儲模式
+            useLocalStorage = true;
+            const localScores = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+            updateLeaderboardDisplay(localScores);
         });
     } catch (error) {
         console.error('Error loading leaderboard:', error);
+        // 如果出錯，切換到本地存儲模式
+        useLocalStorage = true;
+        const localScores = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+        updateLeaderboardDisplay(localScores);
     }
 }
 
