@@ -1,5 +1,5 @@
-const CACHE_NAME = 'hit-victor-v1';
-const SCORES_CACHE = 'scores-v1';
+const CACHE_NAME = 'hit-victor-v1.6.0';
+const SCORES_CACHE = 'scores-v1.6.0';
 const urlsToCache = [
     './',
     './index.html',
@@ -8,9 +8,14 @@ const urlsToCache = [
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png',
-    './sounds/哎也.mp3',
-    './sounds/好痛.mp3',
-    './highscores.json'
+    './sounds/ouch.mp3',
+    './sounds/pain.mp3',
+    './sounds/no.mp3',
+    './faces/normal.webp',
+    './faces/surprised.webp',
+    './faces/hurt.webp',
+    './faces/sad.webp',
+    './faces/angry.webp'
 ];
 
 // High scores cache duration (5 minutes)
@@ -41,6 +46,9 @@ async function handleScoresRequest(request) {
 
 // Install event - cache all required files
 self.addEventListener('install', event => {
+    console.log('Installing new service worker version');
+    self.skipWaiting();
+    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
@@ -57,40 +65,46 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
-    // Handle high scores requests
+    if (event.request.mode === 'navigate' || 
+        event.request.headers.get('accept').includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    if (!response || response.status !== 200) {
+                        return caches.match(event.request);
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+    
     if (url.pathname.endsWith('highscores.json')) {
         event.respondWith(handleScoresRequest(event.request));
         return;
     }
     
-    // Handle regular requests with cache-first strategy
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-
-                const fetchRequest = event.request.clone();
-                
-                return fetch(fetchRequest)
-                    .then(response => {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
-
-                        const responseToCache = response.clone();
-                        
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                return cache.match(event.request)
+                    .then(cachedResponse => {
+                        const fetchPromise = fetch(event.request)
+                            .then(networkResponse => {
+                                if (networkResponse && networkResponse.status === 200) {
+                                    cache.put(event.request, networkResponse.clone());
+                                }
+                                return networkResponse;
+                            })
+                            .catch(error => {
+                                console.error('Fetch failed:', error);
+                                return cachedResponse;
                             });
-
-                        return response;
-                    })
-                    .catch(error => {
-                        console.error('Fetch failed:', error);
-                        throw error;
+                            
+                        return cachedResponse || fetchPromise;
                     });
             })
     );
@@ -98,20 +112,21 @@ self.addEventListener('fetch', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
+    console.log('Activating new service worker version');
+    
     event.waitUntil(
-        caches.keys()
-            .then(cacheNames => {
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then(cacheNames => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
-                        if (cacheName !== CACHE_NAME) {
+                        if (cacheName !== CACHE_NAME && cacheName !== SCORES_CACHE) {
                             console.log('Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
                 );
             })
-            .catch(error => {
-                console.error('Cache cleanup failed:', error);
-            })
+        ])
     );
 });

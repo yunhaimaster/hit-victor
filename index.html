@@ -42,10 +42,43 @@
                 navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful');
+                        
+                        // 檢查更新
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('Service Worker update found!');
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                // 當新版本準備好時
+                                if (newWorker.state === 'activated') {
+                                    // 提示用戶刷新頁面
+                                    if (!window.isReloading) {
+                                        window.isReloading = true;
+                                        alert('新版本已準備好！請重新載入頁面以使用最新版本。');
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                        
+                        // 定期檢查更新
+                        setInterval(() => {
+                            registration.update();
+                            console.log('Checking for SW update');
+                        }, 1000 * 60 * 60); // 每小時檢查一次
                     })
                     .catch(error => {
                         console.log('ServiceWorker registration failed:', error);
                     });
+            });
+            
+            // 監聽控制權變更
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>
