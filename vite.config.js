@@ -15,10 +15,7 @@ export default defineConfig({
       }
     }
   },
-  resolve: {
-    alias: {
-      'firebase/app': 'firebase/app/dist/esm/index.esm.js',
-      'firebase/firestore': 'firebase/firestore/dist/esm/index.esm.js'
-    }
+  optimizeDeps: {
+    include: ['firebase/app', 'firebase/firestore']
   }
 }); 
