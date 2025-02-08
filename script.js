@@ -87,22 +87,33 @@ const audioPool = {
     sounds: {
         ouch: [],
         pain: [],
-        no: []  // 新加入嘅 "唔好呀" 音效
+        no: []
     },
     currentIndex: {
         ouch: 0,
         pain: 0,
         no: 0
     },
-    isPlaying: false,  // 新增：追蹤是否正在播放音效
+    isPlaying: false,
     poolSize: 3,
+    isInitialized: false,  // 新增：追蹤初始化狀態
     
     initialize() {
+        if (this.isInitialized) return;  // 防止重複初始化
+        
         // Create multiple audio objects for each sound type
         for (let i = 0; i < this.poolSize; i++) {
             const ouchSound = new Audio('sounds/ouch.mp3');
             const painSound = new Audio('sounds/pain.mp3');
             const noSound = new Audio('sounds/no.mp3');
+            
+            // iOS Safari 需要這些設置
+            ouchSound.preload = 'auto';
+            painSound.preload = 'auto';
+            noSound.preload = 'auto';
+            ouchSound.playsinline = true;
+            painSound.playsinline = true;
+            noSound.playsinline = true;
             
             // 添加錯誤處理
             ouchSound.onerror = () => console.error('Error loading ouch.mp3');
@@ -110,30 +121,58 @@ const audioPool = {
             noSound.onerror = () => console.error('Error loading no.mp3');
             
             // 添加加載成功處理
-            ouchSound.oncanplaythrough = () => console.log('ouch.mp3 loaded');
-            painSound.oncanplaythrough = () => console.log('pain.mp3 loaded');
-            noSound.oncanplaythrough = () => console.log('no.mp3 loaded');
+            ouchSound.oncanplaythrough = () => {
+                console.log('ouch.mp3 loaded');
+                this.tryUnlockAudio(ouchSound);
+            };
+            painSound.oncanplaythrough = () => {
+                console.log('pain.mp3 loaded');
+                this.tryUnlockAudio(painSound);
+            };
+            noSound.oncanplaythrough = () => {
+                console.log('no.mp3 loaded');
+                this.tryUnlockAudio(noSound);
+            };
             
             // 添加結束事件處理
             ouchSound.onended = () => this.isPlaying = false;
             painSound.onended = () => this.isPlaying = false;
             noSound.onended = () => this.isPlaying = false;
             
-            ouchSound.preload = 'auto';
-            painSound.preload = 'auto';
-            noSound.preload = 'auto';
-            
             this.sounds.ouch.push(ouchSound);
             this.sounds.pain.push(painSound);
             this.sounds.no.push(noSound);
         }
+        
+        this.isInitialized = true;
+    },
+    
+    // 新增：嘗試解鎖音頻
+    tryUnlockAudio(audio) {
+        if (!audio) return;
+        
+        // iOS Safari 需要用戶交互時播放一下
+        audio.volume = 0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    audio.pause();
+                    audio.volume = 1;
+                })
+                .catch(error => {
+                    console.log('Audio unlock failed:', error);
+                });
+        }
     },
     
     play(isAngry = false) {
-        // 如果正在播放音效，直接返回
-        if (this.isPlaying) {
+        if (!this.isInitialized) {
+            console.warn('Audio pool not initialized');
             return;
         }
+        
+        if (this.isPlaying) return;
         
         // 檢查音效是否已經加載
         if (!this.sounds.ouch.length || !this.sounds.pain.length || !this.sounds.no.length) {
@@ -141,7 +180,7 @@ const audioPool = {
             return;
         }
         
-        // 隨機選擇一個音效 (現在有三種)
+        // 隨機選擇一個音效
         const randomNum = Math.random();
         let type;
         if (randomNum < 0.33) {
@@ -155,7 +194,7 @@ const audioPool = {
         const audio = this.sounds[type][this.currentIndex[type]];
         
         // 檢查音效是否可以播放
-        if (audio.readyState < 2) {  // HAVE_CURRENT_DATA = 2
+        if (!audio || audio.readyState < 2) {
             console.warn(`${type}.mp3 not ready to play`);
             return;
         }
@@ -165,18 +204,21 @@ const audioPool = {
         audio.volume = isAngry ? 1.0 : 0.7;
         audio.playbackRate = isAngry ? 0.8 : 1.0;
         
-        // 設置正在播放標誌
         this.isPlaying = true;
         
         const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
                 console.error(`Audio play error for ${type}.mp3:`, error);
-                this.isPlaying = false;  // 播放失敗時重置標誌
+                this.isPlaying = false;
+                
+                // 如果是因為需要用戶交互而失敗，嘗試解鎖
+                if (error.name === 'NotAllowedError') {
+                    this.tryUnlockAudio(audio);
+                }
             });
         }
         
-        // Move to next audio object in pool
         this.currentIndex[type] = (this.currentIndex[type] + 1) % this.poolSize;
     }
 };
@@ -738,7 +780,8 @@ const container = document.querySelector('.character-container');
 // 處理第一次互動
 function handleFirstInteraction(event) {
     if (!isAudioInitialized) {
-        loadSounds();
+        audioPool.initialize();
+        isAudioInitialized = true;
     }
     handleHit(event);
 }
