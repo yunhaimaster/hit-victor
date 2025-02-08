@@ -53,6 +53,7 @@ const audioPool = {
         pain: 0,
         no: 0
     },
+    isPlaying: false,  // 新增：追蹤是否正在播放音效
     poolSize: 3,
     
     initialize() {
@@ -61,6 +62,21 @@ const audioPool = {
             const ouchSound = new Audio('sounds/ouch.mp3');
             const painSound = new Audio('sounds/pain.mp3');
             const noSound = new Audio('sounds/no.mp3');
+            
+            // 添加錯誤處理
+            ouchSound.onerror = () => console.error('Error loading ouch.mp3');
+            painSound.onerror = () => console.error('Error loading pain.mp3');
+            noSound.onerror = () => console.error('Error loading no.mp3');
+            
+            // 添加加載成功處理
+            ouchSound.oncanplaythrough = () => console.log('ouch.mp3 loaded');
+            painSound.oncanplaythrough = () => console.log('pain.mp3 loaded');
+            noSound.oncanplaythrough = () => console.log('no.mp3 loaded');
+            
+            // 添加結束事件處理
+            ouchSound.onended = () => this.isPlaying = false;
+            painSound.onended = () => this.isPlaying = false;
+            noSound.onended = () => this.isPlaying = false;
             
             ouchSound.preload = 'auto';
             painSound.preload = 'auto';
@@ -73,6 +89,17 @@ const audioPool = {
     },
     
     play(isAngry = false) {
+        // 如果正在播放音效，直接返回
+        if (this.isPlaying) {
+            return;
+        }
+        
+        // 檢查音效是否已經加載
+        if (!this.sounds.ouch.length || !this.sounds.pain.length || !this.sounds.no.length) {
+            console.warn('Sound effects not loaded yet');
+            return;
+        }
+        
         // 隨機選擇一個音效 (現在有三種)
         const randomNum = Math.random();
         let type;
@@ -86,15 +113,25 @@ const audioPool = {
         
         const audio = this.sounds[type][this.currentIndex[type]];
         
+        // 檢查音效是否可以播放
+        if (audio.readyState < 2) {  // HAVE_CURRENT_DATA = 2
+            console.warn(`${type}.mp3 not ready to play`);
+            return;
+        }
+        
         // Reset and configure audio
         audio.currentTime = 0;
-        audio.volume = isAngry ? 1.0 : 0.7;  // 將音量範圍改為 0-1 之間
+        audio.volume = isAngry ? 1.0 : 0.7;
         audio.playbackRate = isAngry ? 0.8 : 1.0;
+        
+        // 設置正在播放標誌
+        this.isPlaying = true;
         
         const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
-                console.log("Audio play error:", error);
+                console.error(`Audio play error for ${type}.mp3:`, error);
+                this.isPlaying = false;  // 播放失敗時重置標誌
             });
         }
         
@@ -121,8 +158,8 @@ async function updateScore(newScore) {
             scores = docSnap.data().scores || [];
         }
         
-        // 檢查是否能進入排行榜（前5名）
-        const isTopScore = scores.length < 5 || newScore > (scores[scores.length - 1]?.score || 0);
+        // 檢查是否能進入排行榜（前3名）
+        const isTopScore = scores.length < 3 || newScore > (scores[scores.length - 1]?.score || 0);
         
         if (isTopScore) {
             // 顯示名字輸入對話框
@@ -139,9 +176,9 @@ async function updateScore(newScore) {
                     timestamp: new Date()
                 });
                 
-                // 排序並只保留前5名
+                // 排序並只保留前3名
                 scores.sort((a, b) => b.score - a.score);
-                scores = scores.slice(0, 5);
+                scores = scores.slice(0, 3);
                 
                 // 更新 Firebase
                 await setDoc(leaderboardRef, {
@@ -201,19 +238,144 @@ function updateHighScoreDisplay() {
     }
 }
 
-// Replace the loadSounds function
+// 資源加載狀態
+const resourceStatus = {
+    images: {
+        loaded: 0,
+        total: 5,  // 5張表情圖片
+        weight: 0.4  // 圖片佔40%的加載比重
+    },
+    sounds: {
+        loaded: 0,
+        total: 3,  // 3個音效
+        weight: 0.3  // 音效佔30%的加載比重
+    },
+    firebase: {
+        loaded: 0,
+        total: 1,  // Firebase 連接
+        weight: 0.3  // Firebase佔30%的加載比重
+    }
+};
+
+// 更新加載進度
+function updateLoadingProgress() {
+    let totalProgress = 0;
+    
+    // 計算每個資源類型的進度
+    for (const [key, status] of Object.entries(resourceStatus)) {
+        const resourceProgress = (status.loaded / status.total) * status.weight;
+        totalProgress += resourceProgress;
+    }
+    
+    // 轉換為百分比
+    const progress = Math.min(Math.round(totalProgress * 100), 100);
+    
+    // 平滑更新進度條
+    requestAnimationFrame(() => {
+        loadingProgress.style.width = `${progress}%`;
+        loadingPercentage.textContent = `${progress}%`;
+        
+        // 根據進度更新加載文字
+        const loadingText = document.querySelector('.loading-text');
+        if (progress < 20) {
+            loadingText.textContent = "準備緊打 Victor...";
+        } else if (progress < 40) {
+            loadingText.textContent = "加載緊表情...";
+        } else if (progress < 60) {
+            loadingText.textContent = "加載緊音效...";
+        } else if (progress < 80) {
+            loadingText.textContent = "準備緊排行榜...";
+        } else {
+            loadingText.textContent = "Victor 準備俾你打...";
+        }
+        
+        // 當所有資源加載完成
+        if (progress === 100) {
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                document.querySelector('.game-container').style.visibility = 'visible';
+                initializeGame();
+            }, 500);
+        }
+    });
+}
+
+// 檢查圖片加載
+function checkImagesLoaded() {
+    const images = document.querySelectorAll('.expression');
+    
+    function imageLoaded() {
+        resourceStatus.images.loaded++;
+        updateLoadingProgress();
+    }
+    
+    images.forEach(img => {
+        if (img.complete) {
+            imageLoaded();
+        } else {
+            img.addEventListener('load', imageLoaded);
+            img.addEventListener('error', () => {
+                console.error('Error loading image:', img.src);
+                imageLoaded(); // 即使加載失敗也繼續
+            });
+        }
+    });
+}
+
+// 修改音效加載邏輯
 function loadSounds() {
     try {
+        const soundTypes = ['ouch', 'pain', 'no'];
+        let loadedSounds = 0;
+        
+        soundTypes.forEach(type => {
+            const audio = new Audio(`sounds/${type}.mp3`);
+            
+            audio.addEventListener('canplaythrough', () => {
+                loadedSounds++;
+                resourceStatus.sounds.loaded = loadedSounds;
+                updateLoadingProgress();
+            });
+            
+            audio.addEventListener('error', () => {
+                console.error(`Error loading ${type}.mp3`);
+                loadedSounds++;
+                resourceStatus.sounds.loaded = loadedSounds;
+                updateLoadingProgress();
+            });
+        });
+        
         audioPool.initialize();
         isAudioInitialized = true;
-        console.log('Sounds loaded successfully');
     } catch (e) {
-        console.log('Audio not supported:', e);
+        console.error('Audio not supported:', e);
+        resourceStatus.sounds.loaded = resourceStatus.sounds.total; // 即使加載失敗也繼續
+        updateLoadingProgress();
     }
 }
 
-// 音效初始化狀態
-let isAudioInitialized = false;
+// 修改 Firebase 初始化邏輯
+async function initializeFirebase() {
+    try {
+        await initializeLeaderboard();
+        resourceStatus.firebase.loaded = 1;
+        updateLoadingProgress();
+    } catch (error) {
+        console.error('Error initializing Firebase:', error);
+        resourceStatus.firebase.loaded = 1; // 即使加載失敗也繼續
+        updateLoadingProgress();
+    }
+}
+
+// 修改 window.addEventListener('load')
+window.addEventListener('load', () => {
+    document.querySelector('.game-container').style.visibility = 'hidden';
+    
+    // 並行加載所有資源
+    checkImagesLoaded();
+    loadSounds();
+    initializeFirebase();
+});
 
 // 切換表情
 function changeExpression(newExpression) {
@@ -365,7 +527,7 @@ function endGame() {
     victor.style.animation = '';
     
     // 更新按鈕文字
-    resetBtn.textContent = '開始';
+    resetBtn.textContent = '重新開始';
     
     // 檢查是否可以進入排行榜
     updateScore(score);
@@ -472,15 +634,29 @@ victor.addEventListener('selectstart', (e) => e.preventDefault());
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-// 初始化
-window.addEventListener('load', () => {
-    loadSounds();
-    // 確保語句泡泡可見並顯示第一句挑釁語句
+// 加載畫面相關變量
+const loadingScreen = document.getElementById('loading-screen');
+const loadingProgress = document.getElementById('loading-progress');
+const loadingPercentage = document.getElementById('loading-percentage');
+const loadingTexts = [
+    "準備緊打 Victor...",
+    "加載緊表情...",
+    "加載緊音效...",
+    "準備緊排行榜...",
+    "Victor 準備俾你打..."
+];
+
+// 音效初始化狀態
+let isAudioInitialized = false;
+
+// 初始化遊戲
+function initializeGame() {
+    // 顯示第一句挑釁語句
     speechBubble.classList.remove('hidden');
     showTaunt();
     // 初始化排行榜
     initializeLeaderboard();
-});
+}
 
 // Add interval to update Victor's state
 setInterval(updateVictorState, 100);  // 每 0.1 秒更新一次

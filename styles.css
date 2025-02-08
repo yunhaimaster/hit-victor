@@ -396,66 +396,6 @@ h1 {
 /* Mobile Optimizations */
 @media (max-width: 480px) {
     .game-container {
-        padding: 12px;
-        gap: 8px;
-        border-radius: 20px;
-    }
-
-    h1 {
-        font-size: 1.6em;
-    }
-
-    .instructions {
-        padding: 10px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-    }
-
-    .instruction-title {
-        font-size: 1em;
-    }
-
-    .detail-item {
-        font-size: 0.9em;
-    }
-
-    .instruction-title .icon {
-        font-size: 1.1em;
-    }
-
-    .detail-item .icon {
-        font-size: 1em;
-    }
-
-    .game-stats {
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-
-    .stat-board {
-        padding: 8px 12px;
-        border-radius: 12px;
-    }
-
-    .stat-value {
-        font-size: 18px;
-    }
-
-    .character-container {
-        width: min(260px, 65vw);
-        height: min(260px, 65vw);
-        margin: 15px auto;
-    }
-
-    #resetBtn {
-        padding: 10px 25px;
-        font-size: 16px;
-    }
-}
-
-/* Small Screen Optimizations */
-@media (max-width: 360px) {
-    .game-container {
         padding: 10px;
         gap: 6px;
     }
@@ -478,14 +418,117 @@ h1 {
     }
 
     .character-container {
-        width: min(240px, 60vw);
-        height: min(240px, 60vw);
-        margin: 12px auto;
+        width: min(220px, 55vw);
+        height: min(220px, 55vw);
+        margin: 8px auto;
     }
 
-    #resetBtn {
-        padding: 8px 20px;
+    .leaderboard-panel {
+        margin-top: 6px;
+        padding: 8px;
+    }
+    
+    .leaderboard-title {
+        font-size: 0.9em;
+        margin-bottom: 4px;
+    }
+    
+    .leaderboard-item {
+        padding: 6px 8px;
+        font-size: 0.85em;
+        gap: 4px;
+    }
+
+    .leaderboard-rank {
+        min-width: 24px;
+    }
+
+    .leaderboard-score {
+        font-size: 0.9em;
+    }
+
+    .speech-bubble {
+        padding: 8px 12px;
         font-size: 14px;
+        min-width: 120px;
+        max-width: 180px;
+        top: -25px;
+        right: -10px;
+    }
+
+    .speech-bubble::before {
+        left: 40%;
+    }
+}
+
+/* Small Screen Optimizations */
+@media (max-width: 360px) {
+    .game-container {
+        padding: 8px;
+        gap: 4px;
+    }
+
+    h1 {
+        font-size: 1.2em;
+    }
+
+    .instructions {
+        padding: 6px;
+        margin-bottom: 4px;
+    }
+
+    .instruction-title {
+        font-size: 0.85em;
+    }
+
+    .detail-item {
+        font-size: 0.8em;
+    }
+
+    .character-container {
+        width: min(200px, 50vw);
+        height: min(200px, 50vw);
+        margin: 6px auto;
+    }
+
+    .leaderboard-panel {
+        margin-top: 4px;
+        padding: 6px;
+    }
+    
+    .leaderboard-title {
+        font-size: 0.85em;
+        margin-bottom: 3px;
+    }
+    
+    .leaderboard-item {
+        padding: 4px 8px;
+        font-size: 0.8em;
+        gap: 3px;
+    }
+
+    .leaderboard-rank {
+        min-width: 20px;
+    }
+
+    .leaderboard-score {
+        font-size: 0.85em;
+    }
+
+    .speech-bubble {
+        padding: 6px 10px;
+        font-size: 13px;
+        min-width: 100px;
+        max-width: 160px;
+        top: -20px;
+        right: -5px;
+    }
+
+    .speech-bubble::before {
+        left: 45%;
+        width: 10px;
+        height: 10px;
+        bottom: -7px;
     }
 }
 
@@ -496,12 +539,16 @@ h1 {
     }
 
     .character-container {
-        margin: 10px auto;
+        width: min(200px, 50vw);
+        height: min(200px, 50vw);
+        margin: 6px auto;
     }
 
     .speech-bubble {
         top: -20px;
-        right: -10px;
+        right: -5px;
+        padding: 6px 10px;
+        font-size: 13px;
     }
 }
 
@@ -588,26 +635,6 @@ h1 {
     padding: 12px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    max-height: 180px;
-    overflow-y: auto;
-    /* 自定義滾動條樣式 */
-    scrollbar-width: thin;
-    scrollbar-color: var(--wood-dark) var(--wood-secondary);
-}
-
-.leaderboard-panel::-webkit-scrollbar {
-    width: 8px;
-}
-
-.leaderboard-panel::-webkit-scrollbar-track {
-    background: var(--wood-secondary);
-    border-radius: 4px;
-}
-
-.leaderboard-panel::-webkit-scrollbar-thumb {
-    background-color: var(--wood-dark);
-    border-radius: 4px;
-    border: 2px solid var(--wood-secondary);
 }
 
 .leaderboard-title {
@@ -618,11 +645,6 @@ h1 {
     display: flex;
     align-items: center;
     gap: 6px;
-    position: sticky;
-    top: 0;
-    background: var(--wood-secondary);
-    padding: 4px 0;
-    z-index: 1;
 }
 
 .leaderboard-list {
@@ -635,11 +657,82 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px;
+    padding: 8px 12px;
     background: rgba(0,0,0,0.1);
     border-radius: 4px;
     color: var(--text-light);
     font-size: 0.95em;
+    position: relative;
+    overflow: hidden;
+}
+
+.leaderboard-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+}
+
+/* 金牌 */
+.leaderboard-item:nth-child(1) {
+    background: rgba(255, 215, 0, 0.15);
+}
+.leaderboard-item:nth-child(1)::before {
+    background: #FFD700;
+}
+
+/* 銀牌 */
+.leaderboard-item:nth-child(2) {
+    background: rgba(192, 192, 192, 0.15);
+}
+.leaderboard-item:nth-child(2)::before {
+    background: #C0C0C0;
+}
+
+/* 銅牌 */
+.leaderboard-item:nth-child(3) {
+    background: rgba(205, 127, 50, 0.15);
+}
+.leaderboard-item:nth-child(3)::before {
+    background: #CD7F32;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    min-width: 30px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.leaderboard-rank::after {
+    font-size: 1.2em;
+}
+
+.leaderboard-item:nth-child(1) .leaderboard-rank::after {
+    content: '👑';
+}
+
+.leaderboard-item:nth-child(2) .leaderboard-rank::after {
+    content: '🥈';
+}
+
+.leaderboard-item:nth-child(3) .leaderboard-rank::after {
+    content: '🥉';
+}
+
+.leaderboard-name {
+    flex-grow: 1;
+    margin: 0 10px;
+    font-weight: 500;
+}
+
+.leaderboard-score {
+    font-weight: bold;
+    color: #FFE66D;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 /* 響應式調整 */
@@ -647,7 +740,6 @@ h1 {
     .leaderboard-panel {
         margin-top: 8px;
         padding: 10px;
-        max-height: 150px;
     }
     
     .leaderboard-title {
@@ -656,7 +748,7 @@ h1 {
     }
     
     .leaderboard-item {
-        padding: 5px 8px;
+        padding: 6px 10px;
         font-size: 0.9em;
     }
 }
@@ -665,7 +757,6 @@ h1 {
     .leaderboard-panel {
         margin-top: 6px;
         padding: 8px;
-        max-height: 130px;
     }
     
     .leaderboard-title {
@@ -674,15 +765,8 @@ h1 {
     }
     
     .leaderboard-item {
-        padding: 4px 6px;
+        padding: 5px 8px;
         font-size: 0.85em;
-    }
-}
-
-/* Height-based Adjustments */
-@media (max-height: 700px) {
-    .leaderboard-panel {
-        max-height: 120px;
     }
 }
 
@@ -728,5 +812,138 @@ h1 {
     border-radius: 4px;
     background: rgba(255,255,255,0.9);
     font-size: 16px;
+}
+
+/* 加載畫面樣式 */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--wood-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+    background-image: 
+        linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(0,0,0,0.2) 25%, transparent 25%);
+    background-size: 30px 30px;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--wood-primary);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    border: 3px solid var(--border-dark);
+    max-width: 300px;
+    width: 90%;
+    background-image: 
+        linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%);
+    background-size: 20px 20px;
+}
+
+.loading-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    border: 3px solid var(--border-dark);
+    background: white;
+    animation: loadingBounce 2s infinite;
+}
+
+.loading-text {
+    color: var(--text-light);
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.loading-progress-container {
+    margin-top: 20px;
+}
+
+.loading-progress-bar {
+    background: var(--wood-dark);
+    border: 2px solid var(--border-dark);
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.loading-progress-fill {
+    background: var(--accent-green);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 6px;
+    background-image: 
+        linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, 
+        rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+    background-size: 20px 20px;
+    animation: progressStripes 1s linear infinite;
+}
+
+.loading-percentage {
+    color: var(--text-light);
+    font-size: 0.9em;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+@keyframes loadingBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes progressStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 0; }
+}
+
+/* 移動端適配 */
+@media (max-width: 480px) {
+    .loading-content {
+        padding: 15px;
+    }
+    
+    .loading-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .loading-text {
+        font-size: 1.1em;
+    }
+}
+
+@media (max-width: 360px) {
+    .loading-content {
+        padding: 12px;
+    }
+    
+    .loading-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .loading-text {
+        font-size: 1em;
+    }
 }
 
