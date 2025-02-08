@@ -10,29 +10,6 @@
     
     <!-- favicon 設定 -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-    
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'firebase/app';
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCjrS24QtvHm31nR_0TTn5caVWbcJkXEcw",
-            projectId: "hitvictorhighscore",
-            appId: "1:643950387981:web:3cd0288c487f4abbe58644"
-        };
-
-        // 初始化 Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // 將 db 同埋其他需要嘅函數設為全域變數
-        window.db = db;
-        window.doc = doc;
-        window.getDoc = getDoc;
-        window.setDoc = setDoc;
-        window.onSnapshot = onSnapshot;
-    </script>
 
     <script>
         if ('serviceWorker' in navigator &&

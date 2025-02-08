@@ -1,3 +1,23 @@
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCjrS24QtvHm31nR_0TTn5caVWbcJkXEcw",
+    projectId: "hitvictorhighscore",
+    appId: "1:643950387981:web:3cd0288c487f4abbe58644"
+};
+
+let db;
+try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    // 即使 Firebase 初始化失敗，我們也繼續載入遊戲
+    resourceStatus.firebase.loaded = 1;
+    updateLoadingProgress();
+}
+
 let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore') || '0');
 const scoreElement = document.getElementById('score');
@@ -148,6 +168,11 @@ const leaderboardList = document.getElementById('leaderboardList');
 
 // 更新分數處理函數
 async function updateScore(newScore) {
+    if (!db) {
+        console.warn('Firebase not initialized, skipping score update');
+        return;
+    }
+
     try {
         // 獲取當前排行榜
         const leaderboardRef = doc(db, 'leaderboard', 'global');
@@ -180,11 +205,15 @@ async function updateScore(newScore) {
                 scores.sort((a, b) => b.score - a.score);
                 scores = scores.slice(0, 3);
                 
-                // 更新 Firebase
-                await setDoc(leaderboardRef, {
-                    scores: scores,
-                    updatedAt: new Date()
-                });
+                try {
+                    // 更新 Firebase
+                    await setDoc(leaderboardRef, {
+                        scores: scores,
+                        updatedAt: new Date()
+                    });
+                } catch (error) {
+                    console.error('Error updating leaderboard:', error);
+                }
                 
                 // 隱藏對話框
                 nameInputModal.classList.add('hidden');
@@ -369,9 +398,16 @@ function loadSounds() {
 // 修改 initializeFirebase 函數
 async function initializeFirebase() {
     try {
+        if (!db) {
+            console.warn('Firebase not initialized, skipping leaderboard');
+            resourceStatus.firebase.loaded = 1;
+            updateLoadingProgress();
+            return;
+        }
+
         // 設置超時
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Firebase initialization timeout')), 5000);
+            setTimeout(() => reject(new Error('Firebase initialization timeout')), 3000); // 縮短到3秒
         });
 
         // 嘗試初始化排行榜，但設置超時限制
