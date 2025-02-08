@@ -369,12 +369,22 @@ function loadSounds() {
 // 修改 initializeFirebase 函數
 async function initializeFirebase() {
     try {
-        await initializeLeaderboard();
+        // 設置超時
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Firebase initialization timeout')), 5000);
+        });
+
+        // 嘗試初始化排行榜，但設置超時限制
+        await Promise.race([
+            initializeLeaderboard(),
+            timeoutPromise
+        ]);
+        
         resourceStatus.firebase.loaded = 1;
         updateLoadingProgress();
     } catch (error) {
         console.error('Error initializing Firebase:', error);
-        // 即使 Firebase 加載失敗都繼續
+        // 即使 Firebase 加載失敗也繼續
         resourceStatus.firebase.loaded = 1;
         updateLoadingProgress();
         
@@ -401,8 +411,8 @@ window.addEventListener('load', () => {
             document.querySelector('.game-container').style.visibility = 'visible';
             initializeGame();
         }
-    }, 10000); // 10秒超時
-    
+    }, 8000); // 縮短到8秒
+
     document.querySelector('.game-container').style.visibility = 'hidden';
     
     // 並行加載所有資源
@@ -416,13 +426,39 @@ window.addEventListener('load', () => {
             resolve();
         }),
         new Promise(resolve => {
-            initializeFirebase().finally(resolve);
+            // 為 Firebase 初始化設置單獨的超時
+            const firebaseTimeout = setTimeout(() => {
+                console.log('Firebase initialization timeout, continuing without it');
+                resourceStatus.firebase.loaded = 1;
+                updateLoadingProgress();
+                resolve();
+            }, 5000);
+
+            initializeFirebase()
+                .finally(() => {
+                    clearTimeout(firebaseTimeout);
+                    resolve();
+                });
         })
     ]).then(() => {
         clearTimeout(loadingTimeout);
+        // 確保遊戲開始
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            document.querySelector('.game-container').style.visibility = 'visible';
+            initializeGame();
+        }
     }).catch(error => {
         console.error('Resource loading error:', error);
         clearTimeout(loadingTimeout);
+        // 即使有錯誤也強制開始遊戲
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            document.querySelector('.game-container').style.visibility = 'visible';
+            initializeGame();
+        }
     });
 });
 
