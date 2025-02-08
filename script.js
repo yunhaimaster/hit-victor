@@ -96,10 +96,10 @@ const audioPool = {
     },
     isPlaying: false,
     poolSize: 3,
-    isInitialized: false,  // 新增：追蹤初始化狀態
+    isInitialized: false,
     
     initialize() {
-        if (this.isInitialized) return;  // 防止重複初始化
+        if (this.isInitialized) return;
         
         // Create multiple audio objects for each sound type
         for (let i = 0; i < this.poolSize; i++) {
@@ -121,18 +121,9 @@ const audioPool = {
             noSound.onerror = () => console.error('Error loading no.mp3');
             
             // 添加加載成功處理
-            ouchSound.oncanplaythrough = () => {
-                console.log('ouch.mp3 loaded');
-                this.tryUnlockAudio(ouchSound);
-            };
-            painSound.oncanplaythrough = () => {
-                console.log('pain.mp3 loaded');
-                this.tryUnlockAudio(painSound);
-            };
-            noSound.oncanplaythrough = () => {
-                console.log('no.mp3 loaded');
-                this.tryUnlockAudio(noSound);
-            };
+            ouchSound.oncanplaythrough = () => console.log('ouch.mp3 loaded');
+            painSound.oncanplaythrough = () => console.log('pain.mp3 loaded');
+            noSound.oncanplaythrough = () => console.log('no.mp3 loaded');
             
             // 添加結束事件處理
             ouchSound.onended = () => this.isPlaying = false;
@@ -145,25 +136,6 @@ const audioPool = {
         }
         
         this.isInitialized = true;
-    },
-    
-    // 新增：嘗試解鎖音頻
-    tryUnlockAudio(audio) {
-        if (!audio) return;
-        
-        // iOS Safari 需要用戶交互時播放一下
-        audio.volume = 0;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => {
-                    audio.pause();
-                    audio.volume = 1;
-                })
-                .catch(error => {
-                    console.log('Audio unlock failed:', error);
-                });
-        }
     },
     
     play(isAngry = false) {
@@ -211,11 +183,6 @@ const audioPool = {
             playPromise.catch(error => {
                 console.error(`Audio play error for ${type}.mp3:`, error);
                 this.isPlaying = false;
-                
-                // 如果是因為需要用戶交互而失敗，嘗試解鎖
-                if (error.name === 'NotAllowedError') {
-                    this.tryUnlockAudio(audio);
-                }
             });
         }
         
@@ -779,9 +746,18 @@ const container = document.querySelector('.character-container');
 
 // 處理第一次互動
 function handleFirstInteraction(event) {
+    // 只在第一次點擊時初始化音頻
     if (!isAudioInitialized) {
-        audioPool.initialize();
-        isAudioInitialized = true;
+        // 創建一個靜音的音頻來解鎖
+        const unlockAudio = new Audio('sounds/ouch.mp3');
+        unlockAudio.volume = 0;
+        unlockAudio.play().then(() => {
+            console.log('Audio unlocked successfully');
+            audioPool.initialize();
+            isAudioInitialized = true;
+        }).catch(error => {
+            console.error('Failed to unlock audio:', error);
+        });
     }
     handleHit(event);
 }
