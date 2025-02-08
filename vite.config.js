@@ -14,5 +14,11 @@ export default defineConfig({
         main: 'index.html'
       }
     }
+  },
+  resolve: {
+    alias: {
+      'firebase/app': 'firebase/app/dist/esm/index.esm.js',
+      'firebase/firestore': 'firebase/firestore/dist/esm/index.esm.js'
+    }
   }
 }); 
