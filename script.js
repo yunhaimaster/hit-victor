@@ -272,29 +272,41 @@ function updateLoadingProgress() {
     
     // 平滑更新進度條
     requestAnimationFrame(() => {
-        loadingProgress.style.width = `${progress}%`;
-        loadingPercentage.textContent = `${progress}%`;
+        const loadingProgress = document.getElementById('loading-progress');
+        const loadingPercentage = document.getElementById('loading-percentage');
+        const loadingScreen = document.getElementById('loading-screen');
+        
+        if (loadingProgress) {
+            loadingProgress.style.width = `${progress}%`;
+        }
+        if (loadingPercentage) {
+            loadingPercentage.textContent = `${progress}%`;
+        }
         
         // 根據進度更新加載文字
         const loadingText = document.querySelector('.loading-text');
-        if (progress < 20) {
-            loadingText.textContent = "準備緊打 Victor...";
-        } else if (progress < 40) {
-            loadingText.textContent = "加載緊表情...";
-        } else if (progress < 60) {
-            loadingText.textContent = "加載緊音效...";
-        } else if (progress < 80) {
-            loadingText.textContent = "準備緊排行榜...";
-        } else {
-            loadingText.textContent = "Victor 準備俾你打...";
+        if (loadingText) {
+            if (progress < 20) {
+                loadingText.textContent = "準備緊打 Victor...";
+            } else if (progress < 40) {
+                loadingText.textContent = "加載緊表情...";
+            } else if (progress < 60) {
+                loadingText.textContent = "加載緊音效...";
+            } else if (progress < 80) {
+                loadingText.textContent = "準備緊排行榜...";
+            } else {
+                loadingText.textContent = "Victor 準備俾你打...";
+            }
         }
         
         // 當所有資源加載完成
         if (progress === 100) {
             setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-                document.querySelector('.game-container').style.visibility = 'visible';
-                initializeGame();
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    document.querySelector('.game-container').style.visibility = 'visible';
+                    initializeGame();
+                }
             }, 500);
         }
     });
@@ -354,7 +366,7 @@ function loadSounds() {
     }
 }
 
-// 修改 Firebase 初始化邏輯
+// 修改 initializeFirebase 函數
 async function initializeFirebase() {
     try {
         await initializeLeaderboard();
@@ -362,19 +374,56 @@ async function initializeFirebase() {
         updateLoadingProgress();
     } catch (error) {
         console.error('Error initializing Firebase:', error);
-        resourceStatus.firebase.loaded = 1; // 即使加載失敗也繼續
+        // 即使 Firebase 加載失敗都繼續
+        resourceStatus.firebase.loaded = 1;
         updateLoadingProgress();
+        
+        // 在排行榜顯示錯誤信息
+        const leaderboardList = document.getElementById('leaderboardList');
+        if (leaderboardList) {
+            leaderboardList.innerHTML = `
+                <div class="leaderboard-item">
+                    <span class="leaderboard-name">排行榜暫時未能載入</span>
+                </div>
+            `;
+        }
     }
 }
 
 // 修改 window.addEventListener('load')
 window.addEventListener('load', () => {
+    // 設置超時機制
+    const loadingTimeout = setTimeout(() => {
+        console.log('Loading timeout reached, forcing game start');
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            document.querySelector('.game-container').style.visibility = 'visible';
+            initializeGame();
+        }
+    }, 10000); // 10秒超時
+    
     document.querySelector('.game-container').style.visibility = 'hidden';
     
     // 並行加載所有資源
-    checkImagesLoaded();
-    loadSounds();
-    initializeFirebase();
+    Promise.all([
+        new Promise(resolve => {
+            checkImagesLoaded();
+            resolve();
+        }),
+        new Promise(resolve => {
+            loadSounds();
+            resolve();
+        }),
+        new Promise(resolve => {
+            initializeFirebase().finally(resolve);
+        })
+    ]).then(() => {
+        clearTimeout(loadingTimeout);
+    }).catch(error => {
+        console.error('Resource loading error:', error);
+        clearTimeout(loadingTimeout);
+    });
 });
 
 // 切換表情
