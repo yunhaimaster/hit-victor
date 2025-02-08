@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
     
+    <!-- favicon 設定 -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <!-- Firebase 初始化 -->
-    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCjrS24QtvHm31nR_0TTn5caVWbcJkXEcw",
             projectId: "hitvictorhighscore",
@@ -21,8 +24,15 @@
         };
 
         // 初始化 Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // 將 db 同埋其他需要嘅函數設為全域變數
+        window.db = db;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.setDoc = setDoc;
+        window.onSnapshot = onSnapshot;
     </script>
 
     <script>
@@ -59,7 +69,7 @@
                         <span class="icon">⏱️</span> 限時20秒
                     </div>
                     <div class="detail-item">
-                        <span class="icon">⭐</span> 打得快有獎勵
+                        <span class="icon">⭐</span> 睇下你夠唔夠快!
                     </div>
                 </div>
             </div>

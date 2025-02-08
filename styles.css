@@ -324,14 +324,14 @@ h1 {
     content: '';
     position: absolute;
     left: 30%;
-    bottom: -12px;
-    width: 24px;
-    height: 24px;
+    bottom: -15px;
+    width: 20px;
+    height: 20px;
     background: var(--wood-secondary);
     transform: rotate(45deg);
     border-radius: 4px;
     box-shadow: 6px 6px 15px rgba(0,0,0,0.2);
-    z-index: 999;
+    z-index: -1;
     border-right: 3px solid var(--border-dark);
     border-bottom: 3px solid var(--border-dark);
 }

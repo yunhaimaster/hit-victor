@@ -58,9 +58,9 @@ const audioPool = {
     initialize() {
         // Create multiple audio objects for each sound type
         for (let i = 0; i < this.poolSize; i++) {
-            const ouchSound = new Audio('sounds/哎也.mp3');
-            const painSound = new Audio('sounds/好痛.mp3');
-            const noSound = new Audio('sounds/唔好呀.mp3');
+            const ouchSound = new Audio('sounds/ouch.mp3');
+            const painSound = new Audio('sounds/pain.mp3');
+            const noSound = new Audio('sounds/no.mp3');
             
             ouchSound.preload = 'auto';
             painSound.preload = 'auto';
@@ -88,7 +88,7 @@ const audioPool = {
         
         // Reset and configure audio
         audio.currentTime = 0;
-        audio.volume = isAngry ? 1.5 : 1.0;
+        audio.volume = isAngry ? 1.0 : 0.7;  // 將音量範圍改為 0-1 之間
         audio.playbackRate = isAngry ? 0.8 : 1.0;
         
         const playPromise = audio.play();
@@ -114,22 +114,22 @@ async function updateHighScore(newScore) {
         updateHighScoreDisplay();
         
         // 更新 Firebase
-        const highScoreRef = db.collection('highscores').doc('global');
-        const doc = await highScoreRef.get();
+        const highScoreRef = doc(db, 'highscores', 'global');
+        const docSnap = await getDoc(highScoreRef);
         
-        if (doc.exists) {
-            const currentHighScore = doc.data().score;
+        if (docSnap.exists()) {
+            const currentHighScore = docSnap.data().score;
             if (newScore > currentHighScore) {
-                await highScoreRef.update({
+                await setDoc(highScoreRef, {
                     score: newScore,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                    updatedAt: new Date()
+                }, { merge: true });
             }
         } else {
-            await highScoreRef.set({
+            await setDoc(highScoreRef, {
                 score: newScore,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: new Date(),
+                updatedAt: new Date()
             });
         }
         
@@ -151,11 +151,11 @@ async function loadHighScore() {
         updateHighScoreDisplay();
         
         // 再嘗試從 Firebase 讀取
-        const highScoreRef = db.collection('highscores').doc('global');
-        const doc = await highScoreRef.get();
+        const highScoreRef = doc(db, 'highscores', 'global');
+        const docSnap = await getDoc(highScoreRef);
         
-        if (doc.exists) {
-            const globalHighScore = doc.data().score;
+        if (docSnap.exists()) {
+            const globalHighScore = docSnap.data().score;
             // 使用較高的分數
             if (globalHighScore > highScore) {
                 highScore = globalHighScore;
@@ -165,17 +165,17 @@ async function loadHighScore() {
             }
         } else if (localHighScore > 0) {
             // 如果 Firebase 中沒有記錄，創建一個
-            await highScoreRef.set({
+            await setDoc(highScoreRef, {
                 score: localHighScore,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: new Date(),
+                updatedAt: new Date()
             });
         }
         
         // 添加實時監聽，以獲取其他玩家的新高分
-        highScoreRef.onSnapshot((doc) => {
-            if (doc.exists) {
-                const globalHighScore = doc.data().score;
+        onSnapshot(highScoreRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const globalHighScore = docSnap.data().score;
                 if (globalHighScore > highScore) {
                     highScore = globalHighScore;
                     localStorage.setItem('highScore', highScore);
@@ -259,6 +259,11 @@ let moodLevel = 100; // 100 = happy, 0 = very unhappy
 let damageLevel = 0; // 0 = normal, 100 = very bruised
 let lastHitTime = 0; // Track the last hit time
 
+// Add combo tracking
+let hitCombo = 0;
+let lastHitTimestamp = 0;
+const COMBO_WINDOW = 500; // 500ms to maintain combo
+
 function updateVictorState() {
     const now = Date.now();
     const timeSinceLastHit = now - lastHitTime;
@@ -297,6 +302,8 @@ function resetGame() {
     damageLevel = 0;
     timeLeft = 20;
     lastHitTime = 0;
+    hitCombo = 0;        // Reset combo
+    lastHitTimestamp = 0; // Reset combo timestamp
     
     // 更新顯示
     document.getElementById('score').textContent = '0';
@@ -386,14 +393,13 @@ function handleHit(event) {
     const victorRect = victor.getBoundingClientRect();
     const centerX = victorRect.left + victorRect.width / 2;
     const centerY = victorRect.top + victorRect.height / 2;
-    const radius = Math.min(victorRect.width, victorRect.height) * 0.4; // Reduced hit area to face only
+    const radius = Math.min(victorRect.width, victorRect.height) * 0.4;
     
     const distance = Math.sqrt(
         Math.pow(x - centerX, 2) + 
         Math.pow(y - centerY, 2)
     );
     
-    // 如果點擊位置離臉部中心太遠,不觸發效果
     if (distance > radius) {
         return;
     }
@@ -423,13 +429,6 @@ function handleHit(event) {
     
     // 防止事件冒泡
     event.stopPropagation();
-    
-    // 打得快有額外時間獎勵
-    if (timeLeft < 18) {
-        const hitBonus = 0.2;
-        timeLeft = Math.min(20, timeLeft + hitBonus);
-        document.getElementById('timer').textContent = Math.ceil(timeLeft); // Always show whole numbers
-    }
 }
 
 // 事件監聽
