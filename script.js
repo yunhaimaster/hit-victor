@@ -102,38 +102,28 @@ const audioPool = {
     poolSize: 3,
     isInitialized: false,
     
-    // 新增：iOS 音頻解鎖
+    // 簡化的 iOS 音頻解鎖
     async unlockAudioForIOS() {
         if (!isIOS) return true;
         
         try {
-            // 創建一個非常短的靜音音頻
-            const silentAudio = new Audio();
-            silentAudio.preload = 'auto';
-            silentAudio.playsinline = true;
-            silentAudio.muted = true;
-            silentAudio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABGwBtbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1t//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAARsxqR2KAAAAAAAAAAAAAAAA//tUZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//////////////////////////////////////////////////////////////////8AAAAA';
+            // 創建一個簡單的音頻元素
+            const audio = new Audio();
+            audio.preload = 'auto';
+            audio.playsinline = true;
+            audio.muted = true;
+            audio.src = 'sounds/ouch.mp3';
             
-            // 等待音頻加載完成
-            await new Promise((resolve, reject) => {
-                silentAudio.oncanplaythrough = resolve;
-                silentAudio.onerror = reject;
-                silentAudio.load();
+            // 等待加載
+            await new Promise((resolve) => {
+                audio.addEventListener('canplaythrough', resolve, { once: true });
+                audio.load();
             });
             
-            // 嘗試播放
-            await silentAudio.play();
-            
-            // 初始化所有音效
-            for (const type of ['ouch', 'pain', 'no']) {
-                const audio = new Audio(`sounds/${type}.mp3`);
-                audio.preload = 'auto';
-                audio.playsinline = true;
-                audio.volume = 0;
-                await audio.play();
-                audio.pause();
-                audio.volume = 1;
-            }
+            // 嘗試播放（靜音）
+            await audio.play();
+            audio.pause();
+            audio.currentTime = 0;
             
             return true;
         } catch (error) {
@@ -145,105 +135,80 @@ const audioPool = {
     async initialize() {
         if (this.isInitialized) return;
         
-        // 先嘗試解鎖 iOS 音頻
-        if (isIOS) {
-            await this.unlockAudioForIOS();
+        try {
+            // 先嘗試解鎖 iOS 音頻
+            if (isIOS) {
+                await this.unlockAudioForIOS();
+            }
+            
+            // 創建音頻池
+            for (let i = 0; i < this.poolSize; i++) {
+                const sounds = {
+                    ouch: new Audio('sounds/ouch.mp3'),
+                    pain: new Audio('sounds/pain.mp3'),
+                    no: new Audio('sounds/no.mp3')
+                };
+                
+                // 設置音頻屬性
+                for (const [type, audio] of Object.entries(sounds)) {
+                    audio.preload = 'auto';
+                    audio.playsinline = true;
+                    audio.muted = false;
+                    audio.volume = 1;
+                    
+                    // 添加事件監聽
+                    audio.addEventListener('ended', () => this.isPlaying = false);
+                    audio.addEventListener('error', () => console.error(`Error loading ${type}.mp3`));
+                    audio.addEventListener('canplaythrough', () => console.log(`${type}.mp3 loaded`));
+                    
+                    // 加入音頻池
+                    this.sounds[type].push(audio);
+                }
+            }
+            
+            this.isInitialized = true;
+            console.log('Audio pool initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize audio pool:', error);
+            throw error;
         }
-        
-        // Create multiple audio objects for each sound type
-        for (let i = 0; i < this.poolSize; i++) {
-            const ouchSound = new Audio('sounds/ouch.mp3');
-            const painSound = new Audio('sounds/pain.mp3');
-            const noSound = new Audio('sounds/no.mp3');
-            
-            // iOS Safari 需要這些設置
-            ouchSound.preload = 'auto';
-            painSound.preload = 'auto';
-            noSound.preload = 'auto';
-            ouchSound.playsinline = true;
-            painSound.playsinline = true;
-            noSound.playsinline = true;
-            
-            // 添加錯誤處理
-            ouchSound.onerror = () => console.error('Error loading ouch.mp3');
-            painSound.onerror = () => console.error('Error loading pain.mp3');
-            noSound.onerror = () => console.error('Error loading no.mp3');
-            
-            // 添加加載成功處理
-            ouchSound.oncanplaythrough = () => console.log('ouch.mp3 loaded');
-            painSound.oncanplaythrough = () => console.log('pain.mp3 loaded');
-            noSound.oncanplaythrough = () => console.log('no.mp3 loaded');
-            
-            // 添加結束事件處理
-            ouchSound.onended = () => this.isPlaying = false;
-            painSound.onended = () => this.isPlaying = false;
-            noSound.onended = () => this.isPlaying = false;
-            
-            this.sounds.ouch.push(ouchSound);
-            this.sounds.pain.push(painSound);
-            this.sounds.no.push(noSound);
-        }
-        
-        this.isInitialized = true;
     },
     
     play(isAngry = false) {
-        if (!this.isInitialized) {
-            console.warn('Audio pool not initialized');
-            return;
+        if (!this.isInitialized || this.isPlaying) return;
+        
+        try {
+            // 隨機選擇音效類型
+            const types = ['ouch', 'pain', 'no'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            // 獲取音頻對象
+            const audio = this.sounds[type][this.currentIndex[type]];
+            if (!audio) return;
+            
+            // 重置音頻狀態
+            audio.currentTime = 0;
+            audio.volume = isAngry ? 1.0 : 0.7;
+            audio.playbackRate = isAngry ? 0.8 : 1.0;
+            audio.muted = false;
+            
+            this.isPlaying = true;
+            
+            // 播放音頻
+            const playPromise = audio.play();
+            if (playPromise) {
+                playPromise.catch(error => {
+                    console.error(`Audio play error:`, error);
+                    this.isPlaying = false;
+                });
+            }
+            
+            // 更新索引
+            this.currentIndex[type] = (this.currentIndex[type] + 1) % this.poolSize;
+        } catch (error) {
+            console.error('Error playing audio:', error);
+            this.isPlaying = false;
         }
-        
-        if (this.isPlaying) return;
-        
-        // 檢查音效是否已經加載
-        if (!this.sounds.ouch.length || !this.sounds.pain.length || !this.sounds.no.length) {
-            console.warn('Sound effects not loaded yet');
-            return;
-        }
-        
-        // 隨機選擇一個音效
-        const randomNum = Math.random();
-        let type;
-        if (randomNum < 0.33) {
-            type = 'ouch';
-        } else if (randomNum < 0.66) {
-            type = 'pain';
-        } else {
-            type = 'no';
-        }
-        
-        const audio = this.sounds[type][this.currentIndex[type]];
-        
-        // 檢查音效是否可以播放
-        if (!audio || audio.readyState < 2) {
-            console.warn(`${type}.mp3 not ready to play`);
-            return;
-        }
-        
-        // Reset and configure audio
-        audio.currentTime = 0;
-        audio.volume = isAngry ? 1.0 : 0.7;
-        audio.playbackRate = isAngry ? 0.8 : 1.0;
-        
-        this.isPlaying = true;
-        
-        // iOS 特別處理
-        if (isIOS) {
-            audio.volume = 0;
-            audio.play().then(() => {
-                audio.volume = isAngry ? 1.0 : 0.7;
-            }).catch(error => {
-                console.error(`Audio play error for ${type}.mp3:`, error);
-                this.isPlaying = false;
-            });
-        } else {
-            audio.play().catch(error => {
-                console.error(`Audio play error for ${type}.mp3:`, error);
-                this.isPlaying = false;
-            });
-        }
-        
-        this.currentIndex[type] = (this.currentIndex[type] + 1) % this.poolSize;
     }
 };
 
