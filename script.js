@@ -44,11 +44,13 @@ let idleTimer = null;
 const audioPool = {
     sounds: {
         ouch: [],
-        pain: []
+        pain: [],
+        no: []  // 新加入嘅 "唔好呀" 音效
     },
     currentIndex: {
         ouch: 0,
-        pain: 0
+        pain: 0,
+        no: 0
     },
     poolSize: 3,
     
@@ -57,17 +59,30 @@ const audioPool = {
         for (let i = 0; i < this.poolSize; i++) {
             const ouchSound = new Audio('sounds/哎也.mp3');
             const painSound = new Audio('sounds/好痛.mp3');
+            const noSound = new Audio('sounds/唔好呀.mp3');
             
             ouchSound.preload = 'auto';
             painSound.preload = 'auto';
+            noSound.preload = 'auto';
             
             this.sounds.ouch.push(ouchSound);
             this.sounds.pain.push(painSound);
+            this.sounds.no.push(noSound);
         }
     },
     
     play(isAngry = false) {
-        const type = Math.random() < 0.5 ? 'ouch' : 'pain';
+        // 隨機選擇一個音效 (現在有三種)
+        const randomNum = Math.random();
+        let type;
+        if (randomNum < 0.33) {
+            type = 'ouch';
+        } else if (randomNum < 0.66) {
+            type = 'pain';
+        } else {
+            type = 'no';
+        }
+        
         const audio = this.sounds[type][this.currentIndex[type]];
         
         // Reset and configure audio
@@ -88,16 +103,92 @@ const audioPool = {
 };
 
 // High score functions
-function updateHighScore(newScore) {
-    // 更新本地儲存
-    localStorage.setItem('highScore', newScore);
-    
-    // 更新記憶體入面嘅值
-    highScore = newScore;
-    updateHighScoreDisplay();
-    
-    // 顯示提示信息
-    alert(`新記錄!\n分數: ${newScore}`);
+async function updateHighScore(newScore) {
+    try {
+        // 更新本地儲存
+        localStorage.setItem('highScore', newScore);
+        
+        // 更新記憶體入面嘅值
+        highScore = newScore;
+        updateHighScoreDisplay();
+        
+        // 更新 Firebase
+        const highScoreRef = db.collection('highscores').doc('global');
+        const doc = await highScoreRef.get();
+        
+        if (doc.exists) {
+            const currentHighScore = doc.data().score;
+            if (newScore > currentHighScore) {
+                await highScoreRef.update({
+                    score: newScore,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } else {
+            await highScoreRef.set({
+                score: newScore,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // 顯示提示信息
+        alert(`新記錄!\n分數: ${newScore}`);
+    } catch (error) {
+        console.error('Error updating high score:', error);
+        // 如果 Firebase 更新失敗，至少本地記錄還在
+    }
+}
+
+async function loadHighScore() {
+    try {
+        // 先讀取本地儲存的分數
+        const localHighScore = parseInt(localStorage.getItem('highScore') || '0');
+        
+        // 立即更新顯示本地分數
+        highScore = localHighScore;
+        updateHighScoreDisplay();
+        
+        // 再嘗試從 Firebase 讀取
+        const highScoreRef = db.collection('highscores').doc('global');
+        const doc = await highScoreRef.get();
+        
+        if (doc.exists) {
+            const globalHighScore = doc.data().score;
+            // 使用較高的分數
+            if (globalHighScore > highScore) {
+                highScore = globalHighScore;
+                // 更新本地儲存和顯示
+                localStorage.setItem('highScore', highScore);
+                updateHighScoreDisplay();
+            }
+        } else if (localHighScore > 0) {
+            // 如果 Firebase 中沒有記錄，創建一個
+            await highScoreRef.set({
+                score: localHighScore,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // 添加實時監聽，以獲取其他玩家的新高分
+        highScoreRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const globalHighScore = doc.data().score;
+                if (globalHighScore > highScore) {
+                    highScore = globalHighScore;
+                    localStorage.setItem('highScore', highScore);
+                    updateHighScoreDisplay();
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading high score:', error);
+        // 如果讀取失敗，使用本地分數
+        highScore = parseInt(localStorage.getItem('highScore') || '0');
+        updateHighScoreDisplay();
+    }
 }
 
 function updateHighScoreDisplay() {
@@ -142,25 +233,24 @@ function getRandomExpression() {
 
 // 顯示挑釁語句
 function showTaunt() {
-    if (currentExpression !== 'angry') {
-        let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * taunts.length);
-        } while (newIndex === lastTauntIndex);
-        
-        lastTauntIndex = newIndex;
-        speechText.textContent = taunts[newIndex];
-        speechBubble.classList.remove('hidden');
-        
-        idleTimer = setTimeout(showTaunt, 2000);
-    }
+    let newIndex;
+    do {
+        newIndex = Math.floor(Math.random() * taunts.length);
+    } while (newIndex === lastTauntIndex);
+    
+    lastTauntIndex = newIndex;
+    speechText.textContent = taunts[newIndex];
+    speechBubble.classList.remove('hidden');
+    
+    // Always schedule next taunt
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(showTaunt, 2000);
 }
 
-// 重置閒置計時器
+// 重置閒置計時器 (修改為只更新文字)
 function resetIdleTimer() {
     clearTimeout(idleTimer);
-    speechBubble.classList.add('hidden');
-    idleTimer = setTimeout(showTaunt, 1000);
+    showTaunt();
 }
 
 // Add new state variables
@@ -227,6 +317,10 @@ function resetGame() {
     // Reset Victor's appearance
     victor.style.filter = '';
     changeExpression('normal');
+    
+    // Ensure speech bubble is visible and start taunts
+    speechBubble.classList.remove('hidden');
+    showTaunt();
 }
 
 // 改返 startTimer 函數入面嘅時間
@@ -255,23 +349,21 @@ function startTimer() {
 // 更新 endGame 函數
 function endGame() {
     isGameActive = false;
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    
+    // 移除 Victor 的搖動動畫
+    victor.style.animation = '';
+    
+    // 更新按鈕文字
+    resetBtn.textContent = '開始';
     
     // 檢查是否破紀錄
     if (score > highScore) {
         updateHighScore(score);
     }
     
-    // 顯示結果
-    alert(`時間到!\n你嘅分數係:${score}\n最高分:${highScore}\n平均每秒打中 ${(score/20).toFixed(2)} 下!`);
-    
-    // 重置狀態
-    victor.style.animation = '';
-    victor.classList.remove('angry');
-    document.querySelector('.character-container').classList.remove('angry');
-    
-    // 改返做「開始」
-    resetBtn.textContent = '開始';
+    // Keep speech bubble visible but change to a taunt
+    showTaunt();
 }
 
 // 修改 handleHit 函數
@@ -383,14 +475,11 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
 // 初始化
 window.addEventListener('load', () => {
     loadSounds();
-    // 立即顯示第一句挑釁語句
-    let initialIndex = Math.floor(Math.random() * taunts.length);
-    speechText.textContent = taunts[initialIndex];
-    lastTauntIndex = initialIndex;
+    // 確保語句泡泡可見並顯示第一句挑釁語句
     speechBubble.classList.remove('hidden');
-    // 設置定時器來更新挑釁語句
-    idleTimer = setTimeout(showTaunt, 2000);
-    updateHighScoreDisplay();
+    showTaunt();
+    // 立即加載最高分
+    loadHighScore();
 });
 
 // Add interval to update Victor's state
