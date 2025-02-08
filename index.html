@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a2a6c">
+    <title>打 Victor</title>
+    <link rel="manifest" href="/hit-victor/assets/manifest-DuAcxLmA.json">
+    
+    <!-- favicon 設定 -->
+    <link rel="icon" type="image/x-icon" href="/hit-victor/assets/favicon-B4mgSpll.ico">
+    
+    <!-- Firebase SDK -->
+
+    <script>
+        if ('serviceWorker' in navigator &&
+            (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                        
+                        // 檢查更新
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('Service Worker update found!');
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                // 當新版本準備好時
+                                if (newWorker.state === 'activated') {
+                                    // 提示用戶刷新頁面
+                                    if (!window.isReloading) {
+                                        window.isReloading = true;
+                                        alert('新版本已準備好！請重新載入頁面以使用最新版本。');
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                        
+                        // 定期檢查更新
+                        setInterval(() => {
+                            registration.update();
+                            console.log('Checking for SW update');
+                        }, 1000 * 60 * 60); // 每小時檢查一次
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+            
+            // 監聽控制權變更
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+  <script type="module" crossorigin src="/hit-victor/assets/main-BNdtnepr.js"></script>
+  <link rel="stylesheet" crossorigin href="/hit-victor/assets/main-BTqrfTlS.css">
+</head>
+<body>
+    <!-- 加載畫面 -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img src="/hit-victor/assets/normal-iS6gyLRS.webp" alt="Victor" class="loading-avatar">
+            <div class="loading-text">準備緊打 Victor...</div>
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar">
+                    <div id="loading-progress" class="loading-progress-fill"></div>
+                </div>
+                <div id="loading-percentage" class="loading-percentage">0%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <h1>打 Victor!</h1>
+            <div class="controls">
+                <button id="resetBtn">開始</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <div class="instruction-content">
+                <div class="instruction-title">
+                    <span class="icon">👊</span> 點擊攻擊 Victor!
+                </div>
+                <div class="instruction-details">
+                    <div class="detail-item">
+                        <span class="icon">⏱️</span> 限時20秒
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">⭐</span> 睇下你夠唔夠快!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-stats">
+            <div class="stat-board timer-board">
+                <div class="stat-label timer-label">時間</div>
+                <span id="timer" class="stat-value">20</span>
+            </div>
+            <div class="stat-board score-board">
+                <div class="stat-label score-label">分數</div>
+                <span id="score" class="stat-value">0</span>
+            </div>
+        </div>
+        
+        <!-- 新增排行榜面板 -->
+        <div class="wooden-panel leaderboard-panel">
+            <div class="leaderboard-title">
+                <span class="icon">👑</span> 排行榜
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- 排行榜項目會動態插入這裡 -->
+            </div>
+        </div>
+        
+        <!-- 新增名字輸入對話框 -->
+        <div id="nameInputModal" class="modal hidden">
+            <div class="modal-content wooden-panel">
+                <h2>恭喜你進入排行榜！</h2>
+                <p>請輸入你的名字：</p>
+                <input type="text" id="playerNameInput" maxlength="10" placeholder="最多10個字" class="wooden-input">
+                <button id="submitNameBtn" class="wooden-button">確定</button>
+            </div>
+        </div>
+
+        <div class="character-container">
+            <div id="speech-bubble" class="speech-bubble">
+                <p>打我呀,哈哈!</p>
+            </div>
+            <div id="victor" class="character">
+                <!-- 使用真實頭像 -->
+                <img src="/hit-victor/assets/normal-iS6gyLRS.webp" alt="Victor Normal" class="expression normal">
+                <img src="/hit-victor/assets/surprised-BchyvmZ9.webp" alt="Victor Surprised" class="expression surprised hidden">
+                <img src="/hit-victor/assets/hurt-B4o8Ijnf.webp" alt="Victor Hurt" class="expression hurt hidden">
+                <img src="/hit-victor/assets/sad-DhVcMNZt.webp" alt="Victor Sad" class="expression sad hidden">
+                <img src="/hit-victor/assets/angry-C_V5NFqT.webp" alt="Victor Angry" class="expression angry hidden">
+            </div>
+        </div>
+    </div>
+    <div class="version-number">v1.5.0</div>
+</body>
+</html>
