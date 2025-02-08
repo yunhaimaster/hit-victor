@@ -4,7 +4,11 @@ export default defineConfig({
   base: '/hit-victor/',
   server: {
     port: 3000,
-    open: true
+    open: true,
+    hmr: {
+      host: 'localhost',
+      protocol: 'ws'
+    }
   },
   build: {
     outDir: 'dist',
@@ -14,8 +18,5 @@ export default defineConfig({
         main: 'index.html'
       }
     }
-  },
-  optimizeDeps: {
-    include: ['firebase/app', 'firebase/firestore']
   }
 }); 

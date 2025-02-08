@@ -1,6 +1,23 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+// 資源加載狀態
+const resourceStatus = {
+    images: {
+        loaded: 0,
+        total: 5,  // 5張表情圖片
+        weight: 0.4  // 圖片佔40%的加載比重
+    },
+    sounds: {
+        loaded: 0,
+        total: 3,  // 3個音效
+        weight: 0.3  // 音效佔30%的加載比重
+    },
+    firebase: {
+        loaded: 0,
+        total: 1,  // Firebase 連接
+        weight: 0.3  // Firebase佔30%的加載比重
+    }
+};
 
+// Firebase 配置
 const firebaseConfig = {
     apiKey: "AIzaSyCjrS24QtvHm31nR_0TTn5caVWbcJkXEcw",
     projectId: "hitvictorhighscore",
@@ -9,11 +26,15 @@ const firebaseConfig = {
 
 let db;
 try {
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
+    // 初始化 Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    resourceStatus.firebase.loaded = 1;
+    updateLoadingProgress();
 } catch (error) {
     console.error('Firebase initialization error:', error);
-    // 即使 Firebase 初始化失敗，我們也繼續載入遊戲
     resourceStatus.firebase.loaded = 1;
     updateLoadingProgress();
 }
@@ -175,11 +196,11 @@ async function updateScore(newScore) {
 
     try {
         // 獲取當前排行榜
-        const leaderboardRef = doc(db, 'leaderboard', 'global');
-        const docSnap = await getDoc(leaderboardRef);
+        const leaderboardRef = db.collection('leaderboard').doc('global');
+        const docSnap = await leaderboardRef.get();
         
         let scores = [];
-        if (docSnap.exists()) {
+        if (docSnap.exists) {
             scores = docSnap.data().scores || [];
         }
         
@@ -207,7 +228,7 @@ async function updateScore(newScore) {
                 
                 try {
                     // 更新 Firebase
-                    await setDoc(leaderboardRef, {
+                    await leaderboardRef.set({
                         scores: scores,
                         updatedAt: new Date()
                     });
@@ -235,13 +256,29 @@ async function updateScore(newScore) {
 
 // 初始化排行榜
 async function initializeLeaderboard() {
+    if (!db) {
+        console.warn('Firebase not initialized, skipping leaderboard');
+        return;
+    }
+
     try {
         // 讀取並監聽排行榜
-        const leaderboardRef = doc(db, 'leaderboard', 'global');
-        onSnapshot(leaderboardRef, (docSnap) => {
-            if (docSnap.exists()) {
+        const leaderboardRef = db.collection('leaderboard').doc('global');
+        leaderboardRef.onSnapshot((docSnap) => {
+            if (docSnap.exists) {
                 const scores = docSnap.data().scores || [];
                 updateLeaderboardDisplay(scores);
+            }
+        }, (error) => {
+            console.error('Error loading leaderboard:', error);
+            // 在排行榜顯示錯誤信息
+            const leaderboardList = document.getElementById('leaderboardList');
+            if (leaderboardList) {
+                leaderboardList.innerHTML = `
+                    <div class="leaderboard-item">
+                        <span class="leaderboard-name">排行榜暫時未能載入</span>
+                    </div>
+                `;
             }
         });
     } catch (error) {
@@ -266,25 +303,6 @@ function updateHighScoreDisplay() {
         highScoreElement.textContent = highScore;
     }
 }
-
-// 資源加載狀態
-const resourceStatus = {
-    images: {
-        loaded: 0,
-        total: 5,  // 5張表情圖片
-        weight: 0.4  // 圖片佔40%的加載比重
-    },
-    sounds: {
-        loaded: 0,
-        total: 3,  // 3個音效
-        weight: 0.3  // 音效佔30%的加載比重
-    },
-    firebase: {
-        loaded: 0,
-        total: 1,  // Firebase 連接
-        weight: 0.3  // Firebase佔30%的加載比重
-    }
-};
 
 // 更新加載進度
 function updateLoadingProgress() {

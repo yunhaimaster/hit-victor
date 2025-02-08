@@ -24,16 +24,26 @@ const HIGH_SCORES_CACHE_DURATION = 5 * 60 * 1000;
 // Function to handle high scores requests
 async function handleScoresRequest(request) {
     try {
+        // Check if the request URL scheme is supported
+        const url = new URL(request.url);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+            throw new Error('Unsupported URL scheme');
+        }
+
         // Always try network first
         const response = await fetch(request);
         if (response.ok) {
             const responseToCache = response.clone();
             const cache = await caches.open(SCORES_CACHE);
-            await cache.put(request, responseToCache);
+            // Only cache http/https requests
+            if (['http:', 'https:'].includes(url.protocol)) {
+                await cache.put(request, responseToCache);
+            }
             return response;
         }
         throw new Error('Network response was not ok');
     } catch (error) {
+        console.warn('Cache operation failed:', error);
         // If network fails, try cache
         const cache = await caches.open(SCORES_CACHE);
         const cachedResponse = await cache.match(request);
@@ -65,6 +75,11 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
+    // Skip non-HTTP(S) requests
+    if (!['http:', 'https:'].includes(url.protocol)) {
+        return;
+    }
+    
     if (event.request.mode === 'navigate' || 
         event.request.headers.get('accept').includes('text/html')) {
         event.respondWith(
@@ -94,18 +109,28 @@ self.addEventListener('fetch', event => {
                     .then(cachedResponse => {
                         const fetchPromise = fetch(event.request)
                             .then(networkResponse => {
-                                if (networkResponse && networkResponse.status === 200) {
-                                    cache.put(event.request, networkResponse.clone());
+                                if (networkResponse && networkResponse.status === 200 &&
+                                    ['http:', 'https:'].includes(url.protocol)) {
+                                    cache.put(event.request, networkResponse.clone())
+                                        .catch(error => console.warn('Cache put error:', error));
                                 }
                                 return networkResponse;
                             })
                             .catch(error => {
-                                console.error('Fetch failed:', error);
+                                console.warn('Fetch failed:', error);
                                 return cachedResponse;
                             });
                             
                         return cachedResponse || fetchPromise;
+                    })
+                    .catch(error => {
+                        console.warn('Cache match error:', error);
+                        return fetch(event.request);
                     });
+            })
+            .catch(error => {
+                console.warn('Cache open error:', error);
+                return fetch(event.request);
             })
     );
 });
