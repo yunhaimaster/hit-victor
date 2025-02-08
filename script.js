@@ -82,7 +82,11 @@ let lastTauntIndex = -1;
 let currentExpression = 'normal';
 let idleTimer = null;
 
-// Create an audio pool for better sound management
+// 新增：檢測是否為 iOS 設備
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+// 修改 audioPool 對象
 const audioPool = {
     sounds: {
         ouch: [],
@@ -98,8 +102,53 @@ const audioPool = {
     poolSize: 3,
     isInitialized: false,
     
-    initialize() {
+    // 新增：iOS 音頻解鎖
+    async unlockAudioForIOS() {
+        if (!isIOS) return true;
+        
+        try {
+            // 創建一個非常短的靜音音頻
+            const silentAudio = new Audio();
+            silentAudio.preload = 'auto';
+            silentAudio.playsinline = true;
+            silentAudio.muted = true;
+            silentAudio.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABGwBtbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1t//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAARsxqR2KAAAAAAAAAAAAAAAA//tUZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//////////////////////////////////////////////////////////////////8AAAAA';
+            
+            // 等待音頻加載完成
+            await new Promise((resolve, reject) => {
+                silentAudio.oncanplaythrough = resolve;
+                silentAudio.onerror = reject;
+                silentAudio.load();
+            });
+            
+            // 嘗試播放
+            await silentAudio.play();
+            
+            // 初始化所有音效
+            for (const type of ['ouch', 'pain', 'no']) {
+                const audio = new Audio(`sounds/${type}.mp3`);
+                audio.preload = 'auto';
+                audio.playsinline = true;
+                audio.volume = 0;
+                await audio.play();
+                audio.pause();
+                audio.volume = 1;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('iOS audio unlock failed:', error);
+            return false;
+        }
+    },
+    
+    async initialize() {
         if (this.isInitialized) return;
+        
+        // 先嘗試解鎖 iOS 音頻
+        if (isIOS) {
+            await this.unlockAudioForIOS();
+        }
         
         // Create multiple audio objects for each sound type
         for (let i = 0; i < this.poolSize; i++) {
@@ -178,9 +227,17 @@ const audioPool = {
         
         this.isPlaying = true;
         
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
+        // iOS 特別處理
+        if (isIOS) {
+            audio.volume = 0;
+            audio.play().then(() => {
+                audio.volume = isAngry ? 1.0 : 0.7;
+            }).catch(error => {
+                console.error(`Audio play error for ${type}.mp3:`, error);
+                this.isPlaying = false;
+            });
+        } else {
+            audio.play().catch(error => {
                 console.error(`Audio play error for ${type}.mp3:`, error);
                 this.isPlaying = false;
             });
@@ -745,19 +802,15 @@ function handleHit(event) {
 const container = document.querySelector('.character-container');
 
 // 處理第一次互動
-function handleFirstInteraction(event) {
-    // 只在第一次點擊時初始化音頻
+async function handleFirstInteraction(event) {
     if (!isAudioInitialized) {
-        // 創建一個靜音的音頻來解鎖
-        const unlockAudio = new Audio('sounds/ouch.mp3');
-        unlockAudio.volume = 0;
-        unlockAudio.play().then(() => {
-            console.log('Audio unlocked successfully');
-            audioPool.initialize();
+        try {
+            await audioPool.initialize();
             isAudioInitialized = true;
-        }).catch(error => {
-            console.error('Failed to unlock audio:', error);
-        });
+            console.log('Audio initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize audio:', error);
+        }
     }
     handleHit(event);
 }
