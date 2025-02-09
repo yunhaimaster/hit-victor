@@ -545,65 +545,42 @@ function endGame() {
 function handleHit(event) {
     if (!isGameActive) return;
     
-    let x, y;
-    if (event.type.startsWith('touch')) {
-        const touch = event.touches[0];
-        x = touch.clientX;
-        y = touch.clientY;
-    } else {
-        x = event.clientX;
-        y = event.clientY;
-    }
+    // Prevent double hits
+    const now = Date.now();
+    if (now - lastHitTime < 100) return;
+    lastHitTime = now;
     
-    const victorRect = victor.getBoundingClientRect();
-    const centerX = victorRect.left + victorRect.width / 2;
-    const centerY = victorRect.top + victorRect.height / 2;
-    const radius = Math.min(victorRect.width, victorRect.height) * 0.4;
-    
-    const distance = Math.sqrt(
-        Math.pow(x - centerX, 2) + 
-        Math.pow(y - centerY, 2)
-    );
-    
-    if (distance > radius) {
-        return;
-    }
-    
-    // 觸發震動效果
-    if (hasVibrationSupport) {
-        // 根據心情等級調整震動強度
-        if (moodLevel < 25) {
-            // 生氣狀態：更強烈的震動
-            navigator.vibrate([100, 50, 100]);
-        } else if (moodLevel < 50) {
-            // 受傷狀態：中等震動
-            navigator.vibrate([80, 40, 80]);
-        } else {
-            // 正常狀態：輕微震動
-            navigator.vibrate(50);
-        }
-    }
-    
-    resetIdleTimer();
-    score += 1;
-    scoreElement.textContent = score;
-    lastHitTime = Date.now();
-    
-    if (audioPool.isInitialized) {
-        audioPool.play(moodLevel < 25);
-    }
-    
-    victor.classList.remove('hit');
-    void victor.offsetWidth;
+    // Add hit effect
     victor.classList.add('hit');
+    setTimeout(() => victor.classList.remove('hit'), 200);
     
-    const newExpression = getRandomExpression();
-    changeExpression(newExpression);
+    // Create score popup
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = '+1';
+    popup.style.left = `${event.clientX}px`;
+    popup.style.top = `${event.clientY}px`;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 800);
     
-    moodLevel = Math.max(0, moodLevel - 10);
-    damageLevel = Math.min(100, damageLevel + 5);
+    // Update score with animation
+    score++;
+    scoreElement.textContent = score;
+    scoreElement.classList.add('updated');
+    setTimeout(() => scoreElement.classList.remove('updated'), 300);
     
-    event.stopPropagation();
+    // Update character state
+    updateVictorState();
+    
+    // Play sound with optimized audio
+    if (audioPool.isInitialized) {
+        audioPool.play(damageLevel > 50);
+    }
+    
+    // Add haptic feedback if available
+    if (hasVibrationSupport) {
+        navigator.vibrate(50);
+    }
 }
 
 async function handleFirstInteraction(event) {
@@ -766,3 +743,37 @@ window.addEventListener('load', () => {
 });
 
 setInterval(updateVictorState, 100);
+
+// Add performance optimizations
+function optimizePerformance() {
+    // Use requestAnimationFrame for smooth animations
+    let ticking = false;
+    
+    document.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                // Handle scroll-based animations
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+    
+    // Optimize image loading
+    const images = document.querySelectorAll('img[data-src]');
+    const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+                imageObserver.unobserve(img);
+            }
+        });
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+}
+
+// Initialize performance optimizations
+document.addEventListener('DOMContentLoaded', optimizePerformance);
