@@ -105,45 +105,11 @@ const audioPool = {
     poolSize: 3,
     isInitialized: false,
     
-    // 簡化的 iOS 音頻解鎖
-    async unlockAudioForIOS() {
-        if (!isIOS) return true;
-        
-        try {
-            // 創建一個簡單的音頻元素
-            const audio = new Audio();
-            audio.preload = 'auto';
-            audio.playsinline = true;
-            audio.muted = true;
-            audio.src = 'sounds/ouch.mp3';
-            
-            // 等待加載
-            await new Promise((resolve) => {
-                audio.addEventListener('canplaythrough', resolve, { once: true });
-                audio.load();
-            });
-            
-            // 嘗試播放（靜音）
-            await audio.play();
-            audio.pause();
-            audio.currentTime = 0;
-            
-            return true;
-        } catch (error) {
-            console.error('iOS audio unlock failed:', error);
-            return false;
-        }
-    },
-    
-    async initialize() {
+    // 簡化的 iOS 音頻初始化
+    async initializeAudio() {
         if (this.isInitialized) return;
         
         try {
-            // 先嘗試解鎖 iOS 音頻
-            if (isIOS) {
-                await this.unlockAudioForIOS();
-            }
-            
             // 創建音頻池
             for (let i = 0; i < this.poolSize; i++) {
                 const sounds = {
@@ -156,8 +122,7 @@ const audioPool = {
                 for (const [type, audio] of Object.entries(sounds)) {
                     audio.preload = 'auto';
                     audio.playsinline = true;
-                    audio.muted = false;
-                    audio.volume = 1;
+                    audio.volume = 0.7;
                     
                     // 添加事件監聽
                     audio.addEventListener('ended', () => this.isPlaying = false);
@@ -171,9 +136,10 @@ const audioPool = {
             
             this.isInitialized = true;
             console.log('Audio pool initialized successfully');
+            return true;
         } catch (error) {
             console.error('Failed to initialize audio pool:', error);
-            throw error;
+            return false;
         }
     },
     
@@ -193,7 +159,6 @@ const audioPool = {
             audio.currentTime = 0;
             audio.volume = isAngry ? 1.0 : 0.7;
             audio.playbackRate = isAngry ? 0.8 : 1.0;
-            audio.muted = false;
             
             this.isPlaying = true;
             
@@ -201,7 +166,7 @@ const audioPool = {
             const playPromise = audio.play();
             if (playPromise) {
                 playPromise.catch(error => {
-                    console.error(`Audio play error:`, error);
+                    console.warn('Audio play error:', error);
                     this.isPlaying = false;
                 });
             }
@@ -459,7 +424,7 @@ function loadSounds() {
             });
         });
         
-        audioPool.initialize();
+        audioPool.initializeAudio();
         isAudioInitialized = true;
     } catch (e) {
         console.error('Audio not supported:', e);
@@ -766,7 +731,7 @@ function handleHit(event) {
     lastHitTime = Date.now();
     
     // 播放音效
-    if (isAudioInitialized) {
+    if (audioPool.isInitialized) {
         audioPool.play(moodLevel < 25);  // When mood is low, play angry sounds
     }
     
@@ -792,13 +757,13 @@ const container = document.querySelector('.character-container');
 
 // 處理第一次互動
 async function handleFirstInteraction(event) {
-    if (!isAudioInitialized) {
+    // 初始化音頻（只在第一次點擊時）
+    if (!audioPool.isInitialized) {
         try {
-            await audioPool.initialize();
-            isAudioInitialized = true;
-            console.log('Audio initialized successfully');
+            await audioPool.initializeAudio();
+            console.log('Audio initialized on first interaction');
         } catch (error) {
-            console.error('Failed to initialize audio:', error);
+            console.warn('Failed to initialize audio:', error);
         }
     }
     handleHit(event);

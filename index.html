@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a2a6c">
     <title>打 Victor</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=1.6.1">
     <link rel="manifest" href="manifest.json">
     
     <!-- favicon 設定 -->
@@ -16,10 +16,40 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // 版本控制
+        const APP_VERSION = '1.6.1';
+        
+        // 檢查更新
+        function checkForUpdates() {
+            fetch('version.json?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    if (data.version !== APP_VERSION) {
+                        // 清除緩存並重新加載
+                        if ('caches' in window) {
+                            caches.keys().then(cacheNames => {
+                                return Promise.all(
+                                    cacheNames.map(cacheName => caches.delete(cacheName))
+                                );
+                            }).then(() => {
+                                window.location.reload(true);
+                            });
+                        } else {
+                            window.location.reload(true);
+                        }
+                    }
+                })
+                .catch(console.error);
+        }
+
+        // 定期檢查更新
+        setInterval(checkForUpdates, 5 * 60 * 1000); // 每5分鐘檢查一次
+        
+        // Service Worker 設置
         if ('serviceWorker' in navigator &&
             (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js?v=' + APP_VERSION)
                     .then(registration => {
                         console.log('ServiceWorker registration successful');
                         
@@ -41,11 +71,12 @@
                             });
                         });
                         
-                        // 定期檢查更新
-                        setInterval(() => {
-                            registration.update();
-                            console.log('Checking for SW update');
-                        }, 1000 * 60 * 60); // 每小時檢查一次
+                        // 監聽來自 Service Worker 的消息
+                        navigator.serviceWorker.addEventListener('message', event => {
+                            if (event.data.type === 'NEW_VERSION') {
+                                window.location.reload();
+                            }
+                        });
                     })
                     .catch(error => {
                         console.log('ServiceWorker registration failed:', error);

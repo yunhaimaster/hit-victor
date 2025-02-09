@@ -1,22 +1,23 @@
-const CACHE_NAME = 'hit-victor-v1.6.0';
-const SCORES_CACHE = 'scores-v1.6.0';
+const VERSION = '1.6.1';
+const CACHE_NAME = `hit-victor-${VERSION}`;
+const SCORES_CACHE = `scores-${VERSION}`;
 const urlsToCache = [
-    './',
-    './index.html',
-    './styles.css',
-    './script.js',
-    './manifest.json',
-    './icons/icon-192.png',
-    './icons/icon-512.png',
-    './sounds/ouch.mp3',
-    './sounds/pain.mp3',
-    './sounds/no.mp3',
-    './faces/normal.webp',
-    './faces/surprised.webp',
-    './faces/hurt.webp',
-    './faces/sad.webp',
-    './faces/angry.webp'
-];
+    '/',
+    '/index.html',
+    '/styles.css',
+    '/script.js',
+    '/manifest.json',
+    '/icons/icon-192.png',
+    '/icons/icon-512.png',
+    '/sounds/ouch.mp3',
+    '/sounds/pain.mp3',
+    '/sounds/no.mp3',
+    '/faces/normal.webp',
+    '/faces/surprised.webp',
+    '/faces/hurt.webp',
+    '/faces/sad.webp',
+    '/faces/angry.webp'
+].map(url => url + '?v=' + VERSION);
 
 // High scores cache duration (5 minutes)
 const HIGH_SCORES_CACHE_DURATION = 5 * 60 * 1000;
@@ -56,13 +57,13 @@ async function handleScoresRequest(request) {
 
 // Install event - cache all required files
 self.addEventListener('install', event => {
-    console.log('Installing new service worker version');
+    console.log('Installing new service worker version:', VERSION);
     self.skipWaiting();
     
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Opened cache');
+                console.log('Opened cache:', CACHE_NAME);
                 return cache.addAll(urlsToCache);
             })
             .catch(error => {
@@ -71,73 +72,91 @@ self.addEventListener('install', event => {
     );
 });
 
-// Fetch event - handle high scores and regular requests
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
-    
-    // Skip non-HTTP(S) requests
-    if (!['http:', 'https:'].includes(url.protocol)) {
-        return;
+// 檢查請求是否可以緩存
+function isCacheableRequest(request) {
+    try {
+        const url = new URL(request.url);
+        
+        // 不緩存 WebSocket 請求
+        if (request.headers.get('Upgrade') === 'websocket') return false;
+        
+        // 不緩存非 GET 請求
+        if (request.method !== 'GET') return false;
+        
+        // 不緩存非 HTTP/HTTPS 請求
+        if (!['http:', 'https:'].includes(url.protocol)) return false;
+        
+        // 不緩存 HMR 相關請求
+        if (url.pathname.includes('__vite') || url.pathname.includes('@vite')) return false;
+        
+        // 不緩存開發服務器的 WebSocket 請求
+        if (url.searchParams.has('t') || url.searchParams.has('token')) return false;
+
+        return true;
+    } catch (error) {
+        console.warn('Error checking cacheable request:', error);
+        return false;
     }
-    
-    if (event.request.mode === 'navigate' || 
-        event.request.headers.get('accept').includes('text/html')) {
+}
+
+// Fetch event - handle requests
+self.addEventListener('fetch', event => {
+    try {
+        // 跳過不可緩存的請求
+        if (!isCacheableRequest(event.request)) {
+            return;
+        }
+
         event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    if (!response || response.status !== 200) {
-                        return caches.match(event.request);
+            caches.match(event.request)
+                .then(cachedResponse => {
+                    if (cachedResponse) {
+                        return cachedResponse;
                     }
-                    return response;
+
+                    return fetch(event.request)
+                        .then(response => {
+                            // 檢查響應是否有效
+                            if (!response || response.status !== 200) {
+                                return response;
+                            }
+
+                            // 緩存新的響應
+                            if (isCacheableRequest(event.request)) {
+                                const responseToCache = response.clone();
+                                caches.open(CACHE_NAME)
+                                    .then(cache => {
+                                        try {
+                                            cache.put(event.request, responseToCache);
+                                        } catch (error) {
+                                            console.warn('Cache put failed:', error);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.warn('Cache open failed:', error);
+                                    });
+                            }
+
+                            return response;
+                        })
+                        .catch(error => {
+                            console.warn('Fetch failed:', error);
+                            return caches.match('/index.html');
+                        });
                 })
-                .catch(() => {
-                    return caches.match(event.request);
+                .catch(error => {
+                    console.warn('Cache match failed:', error);
+                    return caches.match('/index.html');
                 })
         );
-        return;
+    } catch (error) {
+        console.warn('Service Worker fetch error:', error);
     }
-    
-    if (url.pathname.endsWith('highscores.json')) {
-        event.respondWith(handleScoresRequest(event.request));
-        return;
-    }
-    
-    event.respondWith(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                return cache.match(event.request)
-                    .then(cachedResponse => {
-                        const fetchPromise = fetch(event.request)
-                            .then(networkResponse => {
-                                if (networkResponse && networkResponse.status === 200 &&
-                                    ['http:', 'https:'].includes(url.protocol)) {
-                                    cache.put(event.request, networkResponse.clone())
-                                        .catch(error => console.warn('Cache put error:', error));
-                                }
-                                return networkResponse;
-                            })
-                            .catch(error => {
-                                console.warn('Fetch failed:', error);
-                                return cachedResponse;
-                            });
-                            
-                        return cachedResponse || fetchPromise;
-                    })
-                    .catch(error => {
-                        console.warn('Cache match error:', error);
-                        return fetch(event.request);
-                    });
-            })
-            .catch(error => {
-                console.warn('Cache open error:', error);
-                return fetch(event.request);
-            })
-    );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-    console.log('Activating new service worker version');
+    console.log('Activating new service worker version:', VERSION);
     
     event.waitUntil(
         Promise.all([
