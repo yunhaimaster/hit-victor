@@ -17,6 +17,12 @@ const resourceStatus = {
     }
 };
 
+// 加載進度相關變量
+let lastProgressUpdate = 0;
+let currentLoadingText = "";
+let isUpdatingProgress = false;
+let currentProgress = 0;
+
 // 檢查震動支援
 const hasVibrationSupport = 'vibrate' in navigator;
 
@@ -285,66 +291,94 @@ function updateLeaderboardDisplay(scores) {
 }
 
 // 加載進度相關函數
-function updateLoadingProgress() {
-    let totalProgress = 0;
+async function updateLoadingProgress() {
+    if (isUpdatingProgress) return;
     
+    let totalProgress = 0;
     for (const [key, status] of Object.entries(resourceStatus)) {
         const resourceProgress = (status.loaded / status.total) * status.weight;
         totalProgress += resourceProgress;
     }
     
-    const progress = Math.min(Math.round(totalProgress * 100), 100);
+    const targetProgress = Math.min(Math.round(totalProgress * 100), 100);
     
-    requestAnimationFrame(() => {
+    // 確保進度只能增加，不能減少
+    if (targetProgress < currentProgress) {
+        return;
+    }
+    
+    const now = Date.now();
+    if (now - lastProgressUpdate < 300) {
+        await new Promise(resolve => setTimeout(resolve, 300 - (now - lastProgressUpdate)));
+    }
+    
+    isUpdatingProgress = true;
+    
+    requestAnimationFrame(async () => {
         const loadingProgress = document.getElementById('loading-progress');
         const loadingPercentage = document.getElementById('loading-percentage');
         const loadingScreen = document.getElementById('loading-screen');
+        const loadingText = document.querySelector('.loading-text');
+        
+        // 平滑過渡到目標進度
+        const step = Math.max(1, Math.floor((targetProgress - currentProgress) / 3));
+        currentProgress = Math.min(targetProgress, currentProgress + step);
         
         if (loadingProgress) {
-            loadingProgress.style.width = `${progress}%`;
+            loadingProgress.style.width = `${currentProgress}%`;
         }
         if (loadingPercentage) {
-            loadingPercentage.textContent = `${progress}%`;
+            loadingPercentage.textContent = `${currentProgress}%`;
         }
         
-        const loadingText = document.querySelector('.loading-text');
-        if (loadingText) {
-            if (progress < 20) {
-                loadingText.textContent = "準備緊打 Victor...";
-            } else if (progress < 40) {
-                loadingText.textContent = "加載緊表情...";
-            } else if (progress < 60) {
-                loadingText.textContent = "加載緊音效...";
-            } else if (progress < 80) {
-                loadingText.textContent = "準備緊排行榜...";
-            } else {
-                loadingText.textContent = "Victor 準備俾你打...";
+        let newLoadingText = "";
+        if (currentProgress < 20) {
+            newLoadingText = "準備緊打 Victor...";
+        } else if (currentProgress < 40) {
+            newLoadingText = "加載緊表情...";
+        } else if (currentProgress < 60) {
+            newLoadingText = "加載緊音效...";
+        } else if (currentProgress < 80) {
+            newLoadingText = "準備緊排行榜...";
+        } else {
+            newLoadingText = "Victor 準備俾你打...";
+        }
+        
+        if (loadingText && newLoadingText !== currentLoadingText) {
+            loadingText.textContent = newLoadingText;
+            currentLoadingText = newLoadingText;
+        }
+        
+        if (currentProgress === 100 && targetProgress === 100) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                document.querySelector('.game-container').style.visibility = 'visible';
+                initializeGame();
             }
         }
         
-        if (progress === 100) {
-            setTimeout(() => {
-                if (loadingScreen) {
-                    loadingScreen.classList.add('hidden');
-                    document.querySelector('.game-container').style.visibility = 'visible';
-                    initializeGame();
-                }
-            }, 500);
-        }
+        lastProgressUpdate = Date.now();
+        isUpdatingProgress = false;
     });
 }
 
 // 資源加載檢查函數
 function checkImagesLoaded() {
     const images = document.querySelectorAll('.expression');
+    let loadedCount = 0;
+    const totalImages = images.length;
     
     function imageLoaded() {
-        resourceStatus.images.loaded++;
+        loadedCount++;
+        resourceStatus.images.loaded = loadedCount;
+        resourceStatus.images.total = totalImages;
+        console.log(`Image loaded: ${loadedCount}/${totalImages}`);
         updateLoadingProgress();
     }
     
     images.forEach(img => {
-        if (img.complete) {
+        if (img.complete && img.naturalHeight !== 0) {
             imageLoaded();
         } else {
             img.addEventListener('load', imageLoaded);
@@ -360,26 +394,33 @@ function loadSounds() {
     try {
         const soundTypes = ['ouch', 'pain', 'no'];
         let loadedSounds = 0;
+        const totalSounds = soundTypes.length;
         
         soundTypes.forEach(type => {
             const audio = new Audio(`sounds/${type}.mp3`);
             
-            audio.addEventListener('canplaythrough', () => {
+            const handleLoad = () => {
                 loadedSounds++;
                 resourceStatus.sounds.loaded = loadedSounds;
+                resourceStatus.sounds.total = totalSounds;
+                console.log(`Sound loaded: ${loadedSounds}/${totalSounds}`);
                 updateLoadingProgress();
-            });
+                
+                if (loadedSounds === totalSounds) {
+                    audioPool.initializeAudio();
+                    isAudioInitialized = true;
+                }
+            };
             
+            audio.addEventListener('canplaythrough', handleLoad, { once: true });
             audio.addEventListener('error', () => {
                 console.error(`Error loading ${type}.mp3`);
-                loadedSounds++;
-                resourceStatus.sounds.loaded = loadedSounds;
-                updateLoadingProgress();
+                handleLoad();
             });
+            
+            // Force the load
+            audio.load();
         });
-        
-        audioPool.initializeAudio();
-        isAudioInitialized = true;
     } catch (e) {
         console.error('Audio not supported:', e);
         resourceStatus.sounds.loaded = resourceStatus.sounds.total;
@@ -606,6 +647,33 @@ victor.addEventListener('selectstart', (e) => e.preventDefault());
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+// 初始化遊戲
+function initializeGame() {
+    // 初始化遊戲狀態
+    score = 0;
+    moodLevel = 100;
+    damageLevel = 0;
+    timeLeft = 20;
+    lastHitTime = 0;
+    isGameActive = false;
+    
+    // 重置界面元素
+    scoreElement.textContent = '0';
+    document.getElementById('timer').textContent = '20';
+    resetBtn.textContent = '開始';
+    
+    // 設置初始表情
+    changeExpression('normal');
+    victor.style.filter = '';
+    
+    // 顯示初始對話
+    speechBubble.classList.remove('hidden');
+    showTaunt();
+    
+    // 初始化排行榜
+    initializeLeaderboard();
+}
+
 // 初始化
 window.addEventListener('load', () => {
     const loadingTimeout = setTimeout(() => {
@@ -620,38 +688,72 @@ window.addEventListener('load', () => {
 
     document.querySelector('.game-container').style.visibility = 'hidden';
     
-    Promise.all([
-        new Promise(resolve => {
-            checkImagesLoaded();
-            resolve();
-        }),
-        new Promise(resolve => {
-            loadSounds();
-            resolve();
-        }),
-        new Promise(resolve => {
-            const firebaseTimeout = setTimeout(() => {
-                console.log('Firebase initialization timeout, continuing without it');
-                resourceStatus.firebase.loaded = 1;
-                updateLoadingProgress();
-                resolve();
-            }, 5000);
-
-            initializeLeaderboard()
-                .finally(() => {
-                    clearTimeout(firebaseTimeout);
-                    resolve();
-                });
-        })
-    ]).then(() => {
-        clearTimeout(loadingTimeout);
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-            document.querySelector('.game-container').style.visibility = 'visible';
-            initializeGame();
+    // Reset loading status
+    resourceStatus.images.loaded = 0;
+    resourceStatus.sounds.loaded = 0;
+    resourceStatus.firebase.loaded = 0;
+    currentProgress = 0;
+    
+    // 按順序加載資源
+    const loadSequentially = async () => {
+        // 1. 首先加載 Firebase
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            resourceStatus.firebase.loaded = 1;
+            await updateLoadingProgress();
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            useLocalStorage = true;
+            resourceStatus.firebase.loaded = 1;
+            await updateLoadingProgress();
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
-    }).catch(error => {
+
+        // 2. 然後加載圖片
+        await new Promise(resolve => {
+            checkImagesLoaded();
+            setTimeout(resolve, 1000);
+        });
+
+        // 3. 最後加載音效
+        await new Promise(resolve => {
+            loadSounds();
+            setTimeout(resolve, 1000);
+        });
+
+        // 4. 初始化排行榜
+        await initializeLeaderboard();
+
+        // 5. 最終檢查
+        let checkCount = 0;
+        const finalCheck = setInterval(() => {
+            let totalProgress = 0;
+            for (const [key, status] of Object.entries(resourceStatus)) {
+                const resourceProgress = (status.loaded / status.total) * status.weight;
+                totalProgress += resourceProgress;
+            }
+            
+            checkCount++;
+            if (totalProgress >= 1 || checkCount > 50) {
+                clearInterval(finalCheck);
+                clearTimeout(loadingTimeout);
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (loadingScreen) {
+                        loadingScreen.classList.add('hidden');
+                        document.querySelector('.game-container').style.visibility = 'visible';
+                        initializeGame();
+                    }
+                }, 500);
+            }
+        }, 100);
+    };
+
+    loadSequentially().catch(error => {
         console.error('Resource loading error:', error);
         clearTimeout(loadingTimeout);
         const loadingScreen = document.getElementById('loading-screen');
