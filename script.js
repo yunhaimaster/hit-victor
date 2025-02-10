@@ -432,14 +432,28 @@ function loadSounds() {
 function changeExpression(newExpression) {
     if (currentExpression === newExpression) return;
     
-    expressions[currentExpression].classList.add('hidden');
+    Object.keys(expressions).forEach(expr => {
+        expressions[expr].classList.add('hidden');
+    });
+    
     expressions[newExpression].classList.remove('hidden');
     currentExpression = newExpression;
 }
 
 function getRandomExpression() {
-    const options = ['surprised', 'hurt', 'sad'];
-    return options[Math.floor(Math.random() * options.length)];
+    const expressions = [];
+    
+    if (moodLevel < 25) {
+        expressions.push('angry', 'hurt');
+    } else if (moodLevel < 50) {
+        expressions.push('hurt', 'sad', 'angry');
+    } else if (moodLevel < 75) {
+        expressions.push('surprised', 'hurt', 'sad');
+    } else {
+        expressions.push('surprised', 'sad', 'normal');
+    }
+    
+    return expressions[Math.floor(Math.random() * expressions.length)];
 }
 
 function showTaunt() {
@@ -466,21 +480,32 @@ function updateVictorState() {
     const timeSinceLastHit = now - lastHitTime;
     const isRecovering = timeSinceLastHit > 1000;
 
-    if (isRecovering && score % 10 !== 0) {
-        moodLevel = Math.min(100, moodLevel + 0.1);
-        damageLevel = Math.max(0, damageLevel - 0.05);
+    if (isRecovering && !victor.classList.contains('hit')) {
+        // Slower recovery
+        moodLevel = Math.min(100, moodLevel + 0.05); // Reduced from 0.1 to 0.05
+        damageLevel = Math.max(0, damageLevel - 0.02); // Reduced from 0.05 to 0.02
         
-        if (moodLevel > 75) {
-            changeExpression('normal');
-        } else if (moodLevel > 50) {
-            changeExpression('sad');
-        } else if (moodLevel > 25) {
-            changeExpression('hurt');
-        } else {
-            changeExpression('angry');
+        // Only change expression during recovery if enough time has passed
+        if (timeSinceLastHit > 2000) {
+            if (moodLevel > 75) {
+                changeExpression('normal');
+            } else if (moodLevel > 50) {
+                changeExpression('sad');
+            } else if (moodLevel > 25) {
+                changeExpression('hurt');
+            } else {
+                changeExpression('angry');
+            }
         }
         
-        victor.style.filter = `hue-rotate(${damageLevel * 0.5}deg) brightness(${100 - damageLevel * 0.3}%)`;
+        // Apply visual effects only when damage is significant
+        if (damageLevel > 30) {
+            const hueRotate = Math.max(0, (damageLevel - 30) * 0.3);
+            const brightness = Math.max(70, 100 - (damageLevel - 30) * 0.2);
+            victor.style.filter = `hue-rotate(${hueRotate}deg) brightness(${brightness}%)`;
+        } else {
+            victor.style.filter = '';
+        }
     }
 }
 
@@ -569,18 +594,35 @@ function handleHit(event) {
     scoreElement.classList.add('updated');
     setTimeout(() => scoreElement.classList.remove('updated'), 300);
     
-    // Update character state
-    updateVictorState();
+    // Update mood and damage levels more gradually
+    moodLevel = Math.max(0, moodLevel - 5); // Reduced from 10 to 5
+    damageLevel = Math.min(100, damageLevel + 2); // Reduced from 5 to 2
+    
+    // Change expression based on hit
+    const newExpression = getRandomExpression();
+    changeExpression(newExpression);
+    
+    // Apply visual effects only when damage is significant
+    if (damageLevel > 30) { // Only apply filter when damage is significant
+        const hueRotate = Math.max(0, (damageLevel - 30) * 0.3); // More gradual hue rotation
+        const brightness = Math.max(70, 100 - (damageLevel - 30) * 0.2); // More gradual brightness reduction
+        victor.style.filter = `hue-rotate(${hueRotate}deg) brightness(${brightness}%)`;
+    } else {
+        victor.style.filter = '';
+    }
     
     // Play sound with optimized audio
     if (audioPool.isInitialized) {
-        audioPool.play(damageLevel > 50);
+        audioPool.play(moodLevel < 25);
     }
     
     // Add haptic feedback if available
     if (hasVibrationSupport) {
         navigator.vibrate(50);
     }
+    
+    // Reset idle timer for taunts
+    resetIdleTimer();
 }
 
 async function handleFirstInteraction(event) {
